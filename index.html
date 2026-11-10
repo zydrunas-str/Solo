@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Lempinio solo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: Lempinis amp head — grille header, chord selector panel, the fretboard as the dark "screen", switches, then three cards: where to jam, what the notes mean, the shape as tab. */
+:root{
+  --bg:#dfe2dc;
+  --panel:#eef0eb;
+  --ink:#1b1e1a;
+  --muted:#636a60;
+  --line:#c3c8be;
+  --accent:#cf6a17;
+  --accent-ink:#ffffff;
+  --screen:#171b19;
+  --screen-line:#4c5852;
+  --screen-ink:#e6ebe4;
+  --screen-dim:#7e8a83;
+  --grille-a:#cfd3cb;
+  --grille-b:#c4c9c0;
+  --n-blue:#2f6a9c;
+  --n-blue-ring:#7cbcf0;
+  --b1:#e48d3d;
+  --b2:#4cb6aa;
+  --b3:#a594ea;
+  --b4:#dcc65a;
+  --b5:#62a4e6;
+  --font-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --font-body:"Barlow","Segoe UI",Roboto,system-ui,sans-serif;
+  --font-mono:"Chivo Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131513;--panel:#1c1f1c;--ink:#e4e7e0;--muted:#959c91;--line:#30352f;
+  --accent:#ee8b33;--accent-ink:#1a0f05;
+  --screen:#0c0f0d;--screen-line:#3f4a44;--screen-ink:#e6ebe4;--screen-dim:#6f7b74;
+  --grille-a:#1a1d1a;--grille-b:#222622;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131513;--panel:#1c1f1c;--ink:#e4e7e0;--muted:#959c91;--line:#30352f;
+  --accent:#ee8b33;--accent-ink:#1a0f05;
+  --screen:#0c0f0d;--screen-line:#3f4a44;--screen-ink:#e6ebe4;--screen-dim:#6f7b74;
+  --grille-a:#1a1d1a;--grille-b:#222622;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;
+  padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+  background:repeating-linear-gradient(90deg,var(--grille-a) 0 3px,var(--grille-b) 3px 5px)}
+.brand{display:flex;align-items:center;gap:10px}
+.pilot{width:14px;height:14px;border-radius:50%;background:var(--accent);opacity:.35;flex:none;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent);transition:opacity .08s linear}
+.pilot.on{opacity:1;box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent),0 0 10px var(--accent)}
+h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:0;line-height:1}
+.brand small{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.04em;display:block;margin-top:2px}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);
+  padding:9px 14px;border-radius:7px;font-weight:600;font-size:14px;white-space:nowrap}
+.btn svg{width:16px;height:16px;fill:currentColor}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px}
+.chip .led{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.chip[aria-pressed="true"] .led{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+
+/* chord panel */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.label{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+.chord-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.readout{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;min-width:0}
+.readout h2{font-family:var(--font-display);font-weight:800;font-size:52px;line-height:.9;margin:0;letter-spacing:.02em;min-width:2ch}
+.readout .tones{font-family:var(--font-mono);font-size:14px;font-weight:600}
+.readout .scale{font-size:13px;color:var(--muted)}
+.roots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}
+.roots button{border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:9px 0;
+  font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.02em;color:var(--muted);position:relative;min-width:0}
+.roots button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.roots button[aria-pressed="true"]::after{content:"";position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+@media (max-width:640px){.roots{grid-template-columns:repeat(6,minmax(0,1fr))}.readout h2{font-size:44px}}
+
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:transparent;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.seg.big button{font-size:14px;padding:8px 14px;font-weight:600}
+.seg.off{opacity:.4;pointer-events:none}
+
+/* fretboard screen */
+.board{background:var(--screen);border-radius:10px;overflow-x:auto;overflow-y:hidden;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--screen-ink) 8%,transparent);-webkit-overflow-scrolling:touch}
+.board svg{display:block;width:100%;min-width:860px;height:auto;user-select:none;-webkit-user-select:none}
+.board-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:0 4px;margin-top:-6px}
+.fb-wood{fill:color-mix(in srgb,var(--screen-ink) 4%,var(--screen))}
+.fret{stroke:var(--screen-line);stroke-width:2}
+.nut{fill:var(--screen-dim)}
+.str{stroke:var(--screen-dim)}
+.inlay{fill:var(--screen-line)}
+.fnum{fill:var(--screen-dim);font:500 11px var(--font-mono);text-anchor:middle}
+.fnum.mk{fill:var(--screen-ink)}
+.sname{fill:var(--screen-dim);font:600 12px var(--font-mono);text-anchor:middle}
+.box path{fill-opacity:.09;stroke-width:1.5;stroke-opacity:.55;stroke-linejoin:round;cursor:pointer}
+.box.b0 path{fill:var(--b1);stroke:var(--b1)}.box.b1 path{fill:var(--b2);stroke:var(--b2)}.box.b2 path{fill:var(--b3);stroke:var(--b3)}
+.box.b3 path{fill:var(--b4);stroke:var(--b4)}.box.b4 path{fill:var(--b5);stroke:var(--b5)}
+.box.sel path{fill:var(--accent);stroke:var(--accent);fill-opacity:.15;stroke-opacity:.95;stroke-width:2}
+.blab{cursor:pointer}
+.blab circle{fill:var(--screen);stroke-width:1.5}
+.blab text{font:700 12px var(--font-mono);text-anchor:middle}
+.blab.b0 circle{stroke:var(--b1)}.blab.b0 text{fill:var(--b1)}.blab.b1 circle{stroke:var(--b2)}.blab.b1 text{fill:var(--b2)}
+.blab.b2 circle{stroke:var(--b3)}.blab.b2 text{fill:var(--b3)}.blab.b3 circle{stroke:var(--b4)}.blab.b3 text{fill:var(--b4)}
+.blab.b4 circle{stroke:var(--b5)}.blab.b4 text{fill:var(--b5)}
+.blab.sel circle{fill:var(--accent);stroke:var(--accent)}.blab.sel text{fill:var(--accent-ink)}
+.note{cursor:pointer}
+.note circle{stroke-width:1.6}
+.note text{font:600 10.5px var(--font-mono);text-anchor:middle;pointer-events:none}
+.n-root circle{fill:var(--accent);stroke:var(--accent)}.n-root text{fill:var(--accent-ink);font-weight:700}
+.n-strong circle{fill:var(--screen-ink);stroke:var(--screen-ink)}.n-strong text{fill:var(--screen)}
+.n-weak circle{fill:var(--screen);stroke:var(--screen-ink)}.n-weak text{fill:var(--screen-ink)}
+.n-gama circle{fill:var(--screen);stroke:var(--screen-dim);stroke-dasharray:3 2.4}.n-gama text{fill:var(--screen-dim)}
+.n-blue circle{fill:var(--n-blue);stroke:var(--n-blue-ring)}.n-blue text{fill:var(--screen-ink)}
+.note.dim{opacity:.13}
+.note.hit circle{animation:hit .45s ease-out}
+@keyframes hit{from{stroke:var(--accent);stroke-width:7}}
+
+/* controls */
+.controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctl-l{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.switch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 10px 4px 4px;font-size:13px;font-weight:600}
+.switch i{width:30px;height:18px;border-radius:9px;background:var(--line);position:relative;transition:background .15s}
+.switch i::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--panel);transition:transform .15s}
+.switch[aria-pressed="true"] i{background:var(--accent)}
+.switch[aria-pressed="true"] i::after{transform:translateX(12px)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.jam{display:flex;flex-direction:column}
+.jrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.jrow:first-child{border-top:0;padding-top:2px}
+.jrow b{font-weight:600}
+.jrow .fr{font-family:var(--font-display);font-weight:800;font-size:26px;line-height:1;text-align:right}
+.jrow .sub{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.jrow .sub button{border:0;background:none;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.help{font-size:13px;color:var(--muted);margin:0}
+.help b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-direction:column;gap:9px;margin:0;padding:0;list-style:none}
+.legend li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start;font-size:13px;color:var(--muted)}
+.legend li.off{opacity:.45}
+.legend b{color:var(--ink);font-weight:600}
+.sw{width:34px;height:28px;border-radius:6px;background:var(--screen);display:block}
+.tabhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tabhead span{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+pre.tab{margin:0;background:var(--screen);color:var(--screen-ink);border-radius:8px;padding:12px 14px;font:500 14px/1.45 var(--font-mono);overflow-x:auto}
+pre.tab .r{color:var(--accent)}
+@media (max-width:520px){h1{font-size:26px}.readout{gap:4px 12px}}
+@media (prefers-reduced-motion:reduce){.pilot,.switch i,.switch i::after{transition:none}.note.hit circle{animation:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="pilot" id="pilot" aria-hidden="true"></span>
+      <div><h1>Lempinio solo</h1><small>kur groti solo pagal akordą</small></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="strum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Groti akordą</button>
+      <button class="chip" id="drone" aria-pressed="false"><span class="led"></span>Fonas jamui</button>
+    </div>
+  </header>
+
+  <section class="panel" aria-label="Akordas">
+    <div class="chord-head">
+      <div class="readout">
+        <h2 id="chordName">Am</h2>
+        <div>
+          <div class="tones" id="chordTones"></div>
+          <div class="scale" id="scaleName"></div>
+        </div>
+      </div>
+      <div class="seg big" id="qSeg" role="group" aria-label="Akordo tipas">
+        <button data-v="min">Minorinis</button><button data-v="maj">Mažorinis</button>
+      </div>
+    </div>
+    <div class="roots" id="roots" role="group" aria-label="Akordo Root nata"></div>
+  </section>
+
+  <div class="board" id="board"><svg id="fb" viewBox="0 0 1000 248" aria-label="Gitaros grifas su solo natomis. Bakstelėk natą, kad išgirstum."></svg></div>
+  <div class="board-foot"><span>e viršuje, E apačioje · bakstelėk natą, kad išgirstum</span><span id="footBox"></span></div>
+
+  <div class="controls">
+    <div class="ctl"><span class="ctl-l">Gama</span>
+      <div class="seg" id="scaleSeg"><button data-v="pent">Pentatonika</button><button data-v="full">Pilna gama</button></div>
+    </div>
+    <button class="switch" id="blueSw" aria-pressed="false"><i></i>Blue nata</button>
+    <div class="ctl">
+      <button class="switch" id="groupSw" aria-pressed="true"><i></i>Formos</button>
+      <div class="seg" id="boxSeg"></div>
+    </div>
+    <div class="ctl"><span class="ctl-l">Žymės</span>
+      <div class="seg" id="labSeg"><button data-v="names">Natos</button><button data-v="ints">Intervalai</button></div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <section class="card">
+      <span class="label">Kur jamminti</span>
+      <div class="jam" id="jam"></div>
+    </section>
+    <section class="card">
+      <span class="label">Natų reikšmė</span>
+      <ul class="legend" id="legend"></ul>
+    </section>
+    <section class="card">
+      <div class="tabhead"><span class="label" id="tabTitle">1 forma</span><span id="tabRange"></span></div>
+      <pre class="tab" id="tab"></pre>
+      <p class="help" id="tabHelp"></p>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const mod = n => ((n % 12) + 12) % 12;
+
+/* ---------- music data */
+const OPEN = [64, 59, 55, 50, 45, 40];          // e B G D A E (top to bottom)
+const SN = ["e", "B", "G", "D", "A", "E"];
+const MAXF = 17;
+const SHARP = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const FLAT  = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
+const FLAT_KEYS = { maj: new Set([1,3,5,8,10]), min: new Set([0,2,3,5,7,10]) };
+const SCALES = {
+  min: { word: "minoro", deg: [[0,"R","root"],[2,"2","gama"],[3,"♭3","strong"],[5,"4","weak"],[7,"5","strong"],[8,"♭6","gama"],[10,"♭7","weak"]], blue: [6,"♭5"] },
+  maj: { word: "mažoro", deg: [[0,"R","root"],[2,"2","weak"],[4,"3","strong"],[5,"4","gama"],[7,"5","strong"],[9,"6","weak"],[11,"7","gama"]], blue: [3,"♭3"] }
+};
+const spellArr = (pc, q) => FLAT_KEYS[q].has(pc) ? FLAT : SHARP;
+const spell = (pc, q, n) => spellArr(pc, q)[mod(n)];
+const chordName = (pc, q) => spell(pc, q, pc) + (q === "min" ? "m" : "");
+
+/* ---------- state */
+const DEF = { root: 9, q: "min", full: false, blue: false, group: true, box: -1, labels: "names" };
+const S = Object.assign({}, DEF);
+try {
+  const v = JSON.parse(localStorage.getItem("lempinio-solo-v1") || "null");
+  if (v && typeof v === "object") for (const k in DEF) if (typeof v[k] === typeof DEF[k]) S[k] = v[k];
+} catch (e) {}
+function save() { try { localStorage.setItem("lempinio-solo-v1", JSON.stringify(S)); } catch (e) {} }
+
+function degMap() {
+  const m = new Map();
+  for (const [i, l, c] of SCALES[S.q].deg) { if (c === "gama" && !S.full) continue; m.set(i, { l, c }); }
+  if (S.blue) { const [i, l] = SCALES[S.q].blue; m.set(i, { l, c: "blue" }); }
+  return m;
+}
+const pentInts = () => SCALES[S.q].deg.filter(d => d[2] !== "gama").map(d => d[0]);
+function noteName(pc, cat) { return cat === "blue" ? FLAT[pc] : spell(S.root, S.q, pc); }
+
+/* Five pentatonic boxes: box k starts on the k-th scale note on the low E string, two notes per string going up. */
+function boxes() {
+  const r = S.root, P = pentInts(), pitches = [];
+  for (let m = 40; m <= 100; m++) if (P.includes(mod(m - r))) pitches.push(m);
+  return P.map((iv, k) => {
+    const m0 = 40 + mod(r + iv - 4), inst = [];
+    for (const off of [0, 12]) {
+      const i0 = pitches.indexOf(m0 + off); if (i0 < 0) continue;
+      const strings = []; let ok = true;
+      for (let s = 5; s >= 0; s--) {
+        const j = i0 + (5 - s) * 2;
+        if (pitches[j + 1] === undefined) { ok = false; break; }
+        const a = pitches[j] - OPEN[s], b = pitches[j + 1] - OPEN[s];
+        if (a < 0 || b > MAXF) { ok = false; break; }
+        strings[s] = [a, b];
+      }
+      if (ok) { const all = strings.flat(); inst.push({ strings, min: Math.min(...all), max: Math.max(...all) }); }
+    }
+    return { k, inst };
+  });
+}
+
+/* ---------- fretboard geometry */
+const W = 1000, NUT = 62, END = 988, TOP = 52, GAP = 30;
+const real = f => 1 - Math.pow(2, -f / 12);
+const fx = f => NUT + (END - NUT) * (.55 * real(f) / real(MAXF) + .45 * f / MAXF);
+const nx = f => f === 0 ? NUT - 22 : (fx(f - 1) + fx(f)) / 2;
+const sy = s => TOP + s * GAP;
+const R = 12;
+
+let B = [];
+function inSel(s, f, cat) {
+  if (!(S.group && S.box >= 0)) return true;
+  for (const I of B[S.box].inst) {
+    const [a, b] = I.strings[s];
+    if (cat === "gama" || cat === "blue") { if (f >= a - 1 && f <= b + 1 && f >= I.min - 1 && f <= I.max + 1) return true; }
+    else if (f === a || f === b) return true;
+  }
+  return false;
+}
+function boxPath(I) {
+  const p = 16, L = s => nx(I.strings[s][0]) - p, Rr = s => nx(I.strings[s][1]) + p;
+  let d = `M${L(0).toFixed(1)},${sy(0) - p}`;
+  for (let s = 0; s < 6; s++) d += ` L${L(s).toFixed(1)},${sy(s)}`;
+  d += ` L${L(5).toFixed(1)},${sy(5) + p} L${Rr(5).toFixed(1)},${sy(5) + p}`;
+  for (let s = 5; s >= 0; s--) d += ` L${Rr(s).toFixed(1)},${sy(s)}`;
+  return d + ` L${Rr(0).toFixed(1)},${sy(0) - p} Z`;
+}
+
+function drawBoard() {
+  const map = degMap();
+  const o = [];
+  o.push(`<rect class="fb-wood" x="${NUT}" y="${sy(0) - 16}" width="${END - NUT}" height="${GAP * 5 + 32}" rx="2"/>`);
+  for (const f of [3, 5, 7, 9, 15, 17]) o.push(`<circle class="inlay" cx="${nx(f)}" cy="${(sy(2) + sy(3)) / 2}" r="5"/>`);
+  o.push(`<circle class="inlay" cx="${nx(12)}" cy="${(sy(1) + sy(2)) / 2}" r="5"/><circle class="inlay" cx="${nx(12)}" cy="${(sy(3) + sy(4)) / 2}" r="5"/>`);
+  for (let f = 1; f <= MAXF; f++) o.push(`<line class="fret" x1="${fx(f)}" x2="${fx(f)}" y1="${sy(0) - 16}" y2="${sy(5) + 16}"/>`);
+  o.push(`<rect class="nut" x="${NUT - 3}" y="${sy(0) - 16}" width="6" height="${GAP * 5 + 32}" rx="1.5"/>`);
+  for (let s = 0; s < 6; s++) {
+    o.push(`<line class="str" x1="${NUT - 40}" x2="${END}" y1="${sy(s)}" y2="${sy(s)}" stroke-width="${(0.7 + s * 0.38).toFixed(2)}"/>`);
+    o.push(`<text class="sname" x="14" y="${sy(s)}" dy=".35em">${SN[s]}</text>`);
+  }
+  for (let f = 0; f <= MAXF; f++) {
+    const mk = [3, 5, 7, 9, 12, 15, 17].includes(f);
+    o.push(`<text class="fnum${mk ? " mk" : ""}" x="${nx(f)}" y="${sy(5) + 36}">${f}</text>`);
+  }
+  /* boxes */
+  if (S.group) {
+    const labs = [];
+    B.forEach(b => b.inst.forEach(I => {
+      const sel = S.box === b.k;
+      if (S.box >= 0 && !sel) return;
+      o.push(`<g class="box b${b.k}${sel ? " sel" : ""}" data-box="${b.k}"><path d="${boxPath(I)}"/></g>`);
+      labs.push({ k: b.k, x: (nx(I.min) + nx(I.max)) / 2, sel });
+    }));
+    /* keep labels from colliding */
+    labs.sort((a, b) => a.x - b.x);
+    let last = -99, row = 0;
+    for (const l of labs) {
+      row = (l.x - last < 26) ? 1 - row : 0; last = l.x;
+      const y = 17, lx = row ? l.x + 13 : l.x;
+      o.push(`<g class="blab b${l.k}${l.sel ? " sel" : ""}" data-box="${l.k}"><circle cx="${lx}" cy="${y}" r="11"/><text x="${lx}" y="${y}" dy=".36em">${l.k + 1}</text></g>`);
+    }
+  }
+  /* notes */
+  for (let s = 0; s < 6; s++) for (let f = 0; f <= MAXF; f++) {
+    const pc = mod(OPEN[s] + f), iv = mod(pc - S.root), d = map.get(iv);
+    if (!d) continue;
+    const lab = S.labels === "ints" ? d.l : noteName(pc, d.c);
+    const dim = !inSel(s, f, d.c);
+    const r = d.c === "root" ? R + 1 : R;
+    o.push(`<g class="note n-${d.c}${dim ? " dim" : ""}" data-s="${s}" data-f="${f}"><circle cx="${nx(f).toFixed(1)}" cy="${sy(s)}" r="${r}"/><text x="${nx(f).toFixed(1)}" y="${sy(s)}" dy=".36em">${lab}</text></g>`);
+  }
+  $("fb").innerHTML = o.join("");
+}
+
+/* ---------- side cards */
+function boxRange(k) {
+  return B[k].inst.map(I => I.min === I.max ? `${I.min}` : `${I.min}–${I.max}`).join(" ir ");
+}
+function rootBoxOn(stringIdx) {
+  for (const b of B) { const I = b.inst[0]; if (I && mod(OPEN[stringIdx] + I.strings[stringIdx][0]) === S.root) return b.k; }
+  return 0;
+}
+function fretsOf(pcOpen) {
+  const f = mod(S.root - pcOpen); return f + 12 <= MAXF ? `${f} / ${f + 12}` : `${f}`;
+}
+function drawJam() {
+  const k6 = rootBoxOn(5), k5 = rootBoxOn(4);
+  const rel = S.q === "min" ? chordName(mod(S.root + 3), "maj") : chordName(mod(S.root + 9), "min");
+  const relWord = S.q === "min" ? "mažoro" : "minoro";
+  $("jam").innerHTML = `
+    <div class="jrow"><b>Root 6-oje stygoje</b><span class="fr">${fretsOf(4)}</span>
+      <span class="sub">Root: <button data-pick="${k6}">${k6 + 1} forma</button>, ${boxRange(k6)} ladai</span></div>
+    <div class="jrow"><b>Root 5-oje stygoje</b><span class="fr">${fretsOf(9)}</span>
+      <span class="sub">Root: <button data-pick="${k5}">${k5 + 1} forma</button>, ${boxRange(k5)} ladai</span></div>
+    <div class="jrow"><b>Paralelinė pentatonika</b><span class="fr">${rel}</span>
+      <span class="sub">Tos pačios 5 natos ir formos kaip ${rel} ${relWord} pentatonikos, tik kitas Root.</span></div>`;
+}
+function swatch(cls) {
+  return `<svg class="sw" viewBox="0 0 34 28" aria-hidden="true"><g class="note ${cls}"><circle cx="17" cy="14" r="9.5"/></g></svg>`;
+}
+function drawLegend() {
+  const min = S.q === "min";
+  const items = [
+    ["n-root", "Root", "Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", true],
+    ["n-strong", "Stiprios", `${min ? "♭3 ir 5" : "3 ir 5"}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, true],
+    ["n-weak", "Silpnos", `${min ? "4 ir ♭7" : "2 ir 6"}: likusios pentatonikos natos. Gerai skamba einant per jas į stiprią natą.`, true],
+    ["n-gama", "Gamos natos", `${min ? "2 ir ♭6" : "4 ir 7"}: pilnos gamos priedai su daugiau įtampos. Naudok trumpai.${S.full ? "" : " Įjunk „Pilna gama“."}`, S.full],
+    ["n-blue", "Blue nata", `${min ? "♭5" : "♭3"}: bliuzo spalva. Slysk per ją, nesustok.${S.blue ? "" : " Įjunk „Blue nata“."}`, S.blue]
+  ];
+  $("legend").innerHTML = items.map(([c, t, d, on]) => `<li class="${on ? "" : "off"}">${swatch(c)}<span><b>${t}.</b> ${d}</span></li>`).join("");
+}
+function drawTab() {
+  const k = S.group && S.box >= 0 ? S.box : 0;
+  const I = B[k].inst[0];
+  $("tabTitle").textContent = `${k + 1} forma`;
+  $("tabRange").textContent = `${boxRange(k)} ladai`;
+  const lines = I.strings.map((pair, s) => {
+    const cells = pair.map(f => { const root = mod(OPEN[s] + f) === S.root; const t = (f + (root ? "*" : "")).padEnd(4, "-"); return root ? `<span class="r">${t}</span>` : t; });
+    return `${SN[s]}|-${cells.join("")}|`;
+  });
+  $("tab").innerHTML = lines.join("\n");
+  $("tabHelp").innerHTML = S.group && S.box >= 0
+    ? `<b>*</b> žymi Root. Pentatonikos natos, po dvi kiekvienoje stygoje.`
+    : `<b>*</b> žymi Root. Rodoma 1 forma. Kitą pasirink virš lentelių arba bakstelėk formos numerį ant grifo.`;
+}
+
+/* ---------- controls */
+function drawRoots() {
+  $("roots").innerHTML = Array.from({ length: 12 }, (_, pc) =>
+    `<button data-pc="${pc}" aria-pressed="${pc === S.root}">${spell(pc, S.q, pc)}</button>`).join("");
+}
+function setPressed(id, v) { for (const b of $(id).querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === v)); }
+function drawControls() {
+  setPressed("qSeg", S.q);
+  setPressed("scaleSeg", S.full ? "full" : "pent");
+  setPressed("labSeg", S.labels);
+  $("blueSw").setAttribute("aria-pressed", String(S.blue));
+  $("groupSw").setAttribute("aria-pressed", String(S.group));
+  $("boxSeg").innerHTML = [["-1", "Visos"], ["0", "1"], ["1", "2"], ["2", "3"], ["3", "4"], ["4", "5"]]
+    .map(([v, t]) => `<button data-v="${v}" aria-pressed="${String(+v === S.box)}">${t}</button>`).join("");
+  $("boxSeg").classList.toggle("off", !S.group);
+}
+function drawHead() {
+  const q = S.q, r = S.root, third = q === "min" ? 3 : 4;
+  $("chordName").textContent = chordName(r, q);
+  $("chordTones").textContent = [0, third, 7].map(i => spell(r, q, r + i)).join(" · ");
+  $("scaleName").textContent = `${spell(r, q, r)} ${SCALES[q].word} ${S.full ? "gama" : "pentatonika"}: ` +
+    SCALES[q].deg.filter(d => S.full || d[2] !== "gama").map(d => spell(r, q, r + d[0])).join(" ");
+  $("footBox").textContent = S.group ? (S.box >= 0 ? `${S.box + 1} forma: ${boxRange(S.box)} ladai` : "visos 5 formos") : "be formų";
+}
+
+function render(scrollToBox) {
+  B = boxes();
+  drawRoots(); drawControls(); drawHead(); drawBoard(); drawJam(); drawLegend(); drawTab();
+  if (scrollToBox && S.group && S.box >= 0) {
+    const I = B[S.box].inst[0], el = $("board");
+    if (el.scrollWidth > el.clientWidth) {
+      const cx = (nx(I.min) + nx(I.max)) / 2 / W * el.scrollWidth;
+      el.scrollTo({ left: cx - el.clientWidth / 2, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+  }
+  save();
+}
+
+$("roots").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.root = +b.dataset.pc; render(true); });
+$("qSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.q = b.dataset.v; render(true); });
+$("scaleSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.full = b.dataset.v === "full"; render(); });
+$("labSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.labels = b.dataset.v; render(); });
+$("blueSw").addEventListener("click", () => { S.blue = !S.blue; render(); });
+$("groupSw").addEventListener("click", () => { S.group = !S.group; render(); });
+$("boxSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.box = +b.dataset.v; render(true); });
+$("jam").addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (!b) return; S.group = true; S.box = +b.dataset.pick; render(true); });
+$("fb").addEventListener("click", e => {
+  const n = e.target.closest(".note");
+  if (n) {
+    const s = +n.dataset.s, f = +n.dataset.f;
+    if (audio()) pluck(OPEN[s] + f, ac.currentTime + .005, .9);
+    n.classList.remove("hit"); void n.getBBox(); n.classList.add("hit");
+    blink();
+    return;
+  }
+  const bx = e.target.closest("[data-box]");
+  if (bx) { const k = +bx.dataset.box; S.box = S.box === k ? -1 : k; render(); }
+});
+
+/* ---------- sound: Karplus–Strong plucked string */
+let ac = null, out = null;
+const bufCache = new Map();
+function audio() {
+  if (!ac) {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    ac = new C();
+    const body = ac.createBiquadFilter(); body.type = "peaking"; body.frequency.value = 210; body.Q.value = 1.1; body.gain.value = 4;
+    const air = ac.createBiquadFilter(); air.type = "highshelf"; air.frequency.value = 4200; air.gain.value = -5;
+    const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3;
+    out = ac.createGain(); out.gain.value = .6;
+    out.connect(body).connect(air).connect(comp).connect(ac.destination);
+  }
+  if (ac.state === "suspended") ac.resume();
+  return ac;
+}
+function ks(midi) {
+  if (bufCache.has(midi)) return bufCache.get(midi);
+  const sr = ac.sampleRate, f = 440 * Math.pow(2, (midi - 69) / 12);
+  const N = Math.max(2, Math.floor(sr / f - .5)), rate = f / (sr / (N + .5));
+  const len = Math.floor(sr * 2.6), buf = ac.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  let seed = (midi * 9301 + 49297) >>> 0;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 * 2 - 1; };
+  let lp = 0;
+  for (let i = 0; i < N; i++) { lp += .55 * (rnd() - lp); d[i] = lp; }
+  const rho = .9965 - Math.max(0, midi - 60) * .00018;
+  for (let i = N; i < len; i++) d[i] = rho * .5 * (d[i - N] + (i - N - 1 >= 0 ? d[i - N - 1] : 0));
+  let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(d[i]));
+  const g = .5 / (pk || 1), fade = Math.floor(sr * .1);
+  for (let i = 0; i < len; i++) d[i] *= g * (i > len - fade ? (len - i) / fade : 1);
+  const v = { buf, rate }; bufCache.set(midi, v); return v;
+}
+function pluck(midi, t, vel) {
+  const { buf, rate } = ks(midi);
+  const src = ac.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  const g = ac.createGain(); g.gain.value = vel;
+  src.connect(g).connect(out); src.start(t);
+}
+function voicing() {
+  const r = S.root, p = mod(r - 4);
+  if (p <= 7) {
+    const fr = S.q === "maj" ? [p, p + 2, p + 2, p + 1, p, p] : [p, p + 2, p + 2, p, p, p];
+    return fr.map((f, i) => OPEN[5 - i] + f);
+  }
+  const q = mod(r - 9);
+  const fr = S.q === "maj" ? [q, q + 2, q + 2, q + 2, q] : [q, q + 2, q + 2, q + 1, q];
+  return fr.map((f, i) => OPEN[4 - i] + f);
+}
+function strum(t, vel, up) {
+  let v = voicing(); if (up) v = v.slice(-3).reverse();
+  v.forEach((m, i) => pluck(m, t + i * (up ? .018 : .026), vel * (up ? .55 : .8)));
+}
+let blinkT = 0;
+function blink() { const p = $("pilot"); p.classList.add("on"); clearTimeout(blinkT); blinkT = setTimeout(() => p.classList.remove("on"), 140); }
+$("strum").addEventListener("click", () => { if (!audio()) return; strum(ac.currentTime + .01, 1, false); blink(); });
+
+/* backing: down strum on 1, light up strum on the "and" of 2, 84 bpm */
+let droneTimer = 0, beat = 0, nextT = 0;
+const BEAT = 60 / 84;
+function tick() {
+  while (nextT < ac.currentTime + .25) {
+    const pos = beat % 8; // eighth notes in a bar
+    if (pos === 0) { strum(nextT, 1, false); setTimeout(blink, Math.max(0, (nextT - ac.currentTime) * 1000)); }
+    if (pos === 3) strum(nextT, .9, true);
+    if (pos === 4) strum(nextT, .7, false);
+    if (pos === 6) strum(nextT, .8, true);
+    nextT += BEAT / 2; beat++;
+  }
+}
+$("drone").addEventListener("click", () => {
+  const on = $("drone").getAttribute("aria-pressed") !== "true";
+  $("drone").setAttribute("aria-pressed", String(on));
+  clearInterval(droneTimer);
+  if (on && audio()) { beat = 0; nextT = ac.currentTime + .05; tick(); droneTimer = setInterval(tick, 60); }
+});
+
+render(true);
+})();
+</script>
+
+</body>
+</html>
