@@ -34,6 +34,7 @@
   --b5:#62a4e6;
   --b6:#e07aa5;
   --b7:#8fc463;
+  --b8:#c9b49a;
   --n-char:#a8326a;
   --n-char-ring:#f39ac4;
   --font-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
@@ -118,8 +119,8 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .box path{fill-opacity:.09;stroke-width:1.5;stroke-opacity:.55;stroke-linejoin:round;cursor:pointer}
 .box.b0 path{fill:var(--b1);stroke:var(--b1)}.box.b1 path{fill:var(--b2);stroke:var(--b2)}.box.b2 path{fill:var(--b3);stroke:var(--b3)}
 .box.b3 path{fill:var(--b4);stroke:var(--b4)}.box.b4 path{fill:var(--b5);stroke:var(--b5)}
-.box.b5 path{fill:var(--b6);stroke:var(--b6)}.box.b6 path{fill:var(--b7);stroke:var(--b7)}
-.blab.b5 circle{stroke:var(--b6)}.blab.b5 text{fill:var(--b6)}.blab.b6 circle{stroke:var(--b7)}.blab.b6 text{fill:var(--b7)}
+.box.b5 path{fill:var(--b6);stroke:var(--b6)}.box.b6 path{fill:var(--b7);stroke:var(--b7)}.box.b7 path{fill:var(--b8);stroke:var(--b8)}
+.blab.b5 circle{stroke:var(--b6)}.blab.b5 text{fill:var(--b6)}.blab.b6 circle{stroke:var(--b7)}.blab.b6 text{fill:var(--b7)}.blab.b7 circle{stroke:var(--b8)}.blab.b7 text{fill:var(--b8)}
 .pair{cursor:pointer}
 .pair line{stroke-width:14;stroke-linecap:round;stroke-opacity:.38}
 .pair.b0 line{stroke:var(--b1)}.pair.b1 line{stroke:var(--b2)}.pair.b2 line{stroke:var(--b3)}.pair.b3 line{stroke:var(--b4)}.pair.b4 line{stroke:var(--b5)}
@@ -211,7 +212,7 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
   <header class="top">
     <div class="brand">
       <span class="pilot" id="pilot" aria-hidden="true"></span>
-      <div><h1>Lempinio solo</h1><small>gamos ir intervalai solo pagal akordą</small></div>
+      <div><h1>Lempinio solo</h1><small>ką groti solo ant akordo</small></div>
     </div>
     <div class="readout" aria-live="polite">
       <h2 id="chordName">Am</h2>
@@ -222,7 +223,6 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
   <section class="panel" aria-label="Akordas">
     <div class="chord-head">
       <div class="seg big" id="qSeg" role="group" aria-label="Akordo tipas">
-        <button data-v="min">Minorinis</button><button data-v="maj">Mažorinis</button>
       </div>
     </div>
     <div class="roots" id="roots" role="group" aria-label="Akordo Root nata"></div>
@@ -286,9 +286,21 @@ const MAXF = 17;
 const SHARP = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
 const FLAT  = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
 const FLAT_KEYS = { maj: new Set([1,3,5,8,10]), min: new Set([0,2,3,5,7,10]) };
-const spellArr = (pc, q) => FLAT_KEYS[q].has(pc) ? FLAT : SHARP;
+/* Chord types. fam: which key signature spells the root (minor-like or major-like); tones: [interval, label, letter degree]. */
+const CH = {
+  min:  { btn: "Minorinis", suf: "m",    fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"]] },
+  maj:  { btn: "Mažorinis", suf: "",     fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"]] },
+  dom7: { btn: "7",         suf: "7",    fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[10,"♭7"]] },
+  maj7: { btn: "maj7",      suf: "maj7", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[11,"7"]] },
+  m7:   { btn: "m7",        suf: "m7",   fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[10,"♭7"]] },
+  m7b5: { btn: "m7♭5",      suf: "m7♭5", fam: "min", tones: [[0,"R"],[3,"♭3"],[6,"♭5"],[10,"♭7"]] },
+  dim7: { btn: "dim7",      suf: "dim7", fam: "min", tones: [[0,"R"],[3,"♭3"],[6,"♭5"],[9,"𝄫7",6]] },
+  aug:  { btn: "aug",       suf: "aug",  fam: "maj", tones: [[0,"R"],[4,"3"],[8,"♯5"]] }
+};
+const fam = q => CH[q] ? CH[q].fam : q;
+const spellArr = (pc, q) => FLAT_KEYS[fam(q)].has(pc) ? FLAT : SHARP;
 const rootName = (pc, q) => spellArr(pc, q)[mod(pc)];
-const chordName = (pc, q) => rootName(pc, q) + (q === "min" ? "m" : "");
+const chordName = (pc, q) => rootName(pc, q) + CH[q].suf;
 
 /* Letter spelling: scale degree n sits n-1 letters above the root letter, so D harmonic minor gets both B♭ and C♯. */
 const LET = "CDEFGAB", NATPC = [0, 2, 4, 5, 7, 9, 11];
@@ -298,7 +310,7 @@ function nameAt(r, q, iv, deg) {
   let d = mod(r + iv - NATPC[li]); if (d > 6) d -= 12;
   return LET[li] + (ACC[d] ?? "");
 }
-const degNum = l => l === "R" ? 1 : +l.replace(/[♭♯]/g, "");
+const degNum = l => l === "R" ? 1 : +l.replace(/[^0-9]/g, "");
 const andJoin = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " ir " + a[a.length - 1];
 
 /* Sets. q: which chord they belong to ("*" = both). ch: characteristic notes (what makes the scale sound like itself).
@@ -308,6 +320,9 @@ const MAJ5 = [[0,"R"],[2,"2"],[4,"3"],[5,"4"],[7,"5"]];
 const SETS = {
   mpent: { q: "min", kind: "scale", btn: "Minor pentatonic", name: "minor pentatonic",
     deg: [[0,"R"],[3,"♭3"],[5,"4"],[7,"5"],[10,"♭7"]], blue: [6, "♭5"], ch: [],
+    ctx: { dom7: { ch: [3], about: "Bliuzo garsas: minorinė pentatonika ant mažorinio septakordo. Rokas ir bliuzas be jos neapsieina.",
+      cmp: "♭3 kertasi su akordo 3, todėl jos nelaikykite: stumkite (bend) arba slyskite į 3.",
+      chTxt: "ji kertasi su akordo 3. Būtent ši trintis ir yra bliuzas." } },
     about: "Saugiausias pasirinkimas solo: rokas, bliuzas, popsas. Penkios natos, ir nė viena nesikerta su akordu.",
     cmp: "Natural minor be 2 ir ♭6.",
     same: { iv: 3, q: "maj", word: "major pentatonic", n: 5 } },
@@ -363,7 +378,34 @@ const SETS = {
     cmp: "Major, tik 7 nuleista pustoniu (♭7).",
     chTxt: "skiria Mixolydian nuo Major. Su ja mažoras skamba bliuziškai.",
     same: { iv: 5, q: "maj", word: "Major", n: 7 },
-    also: { iv: 0, q: "maj", suf: "7", txt: () => "Ant dominantinio septakordo tai pagrindinė gama." } },
+    also: { iv: 0, q: "maj", suf: "7", txt: () => "Ant dominantinio septakordo tai pagrindinė gama." },
+    ctx: { dom7: { also: null, about: "Pagrindinė gama ant 7 akordo: rokas, bliuzas, funk, kantri." } } },
+  lyddom: { q: "dom7", kind: "scale", btn: "Lydian dominant", name: "Lydian dominant",
+    deg: [[0,"R"],[2,"2"],[4,"3"],[6,"♯4"],[7,"5"],[9,"6"],[10,"♭7"]], ch: [6],
+    about: "Mixolydian su ♯4: šviesus, kiek „kosminis“ skambesys. Džiazas, fusion, kino muzika.",
+    cmp: "Mixolydian, tik 4 pakelta pustoniu (♯4).",
+    chTxt: "skiria Lydian dominant nuo Mixolydian. Ji neturi įtampos su akordo 3, todėl ant jos galima sustoti.",
+    same: { iv: 7, q: "min", word: "melodic minor", n: 7 } },
+  loc: { q: "m7b5", kind: "scale", btn: "Locrian", name: "Locrian",
+    deg: [[0,"R"],[1,"♭2"],[3,"♭3"],[5,"4"],[6,"♭5"],[8,"♭6"],[10,"♭7"]], ch: [1],
+    about: "Tamsiausia gama, skirta m7♭5 akordui. Dažniausiai jis būna minorinės kadencijos pradžioje (II–V–I).",
+    cmp: "Natural minor, tik 2 ir 5 nuleistos (♭2 ir ♭5).",
+    chTxt: "skiria Locrian nuo Locrian ♮2. Ji labai įtempta, todėl ant jos nesustokite.",
+    same: { iv: 1, q: "maj", word: "Major", n: 7 } },
+  loc2: { q: "m7b5", kind: "scale", btn: "Locrian ♮2", name: "Locrian ♮2",
+    deg: [[0,"R"],[2,"2"],[3,"♭3"],[5,"4"],[6,"♭5"],[8,"♭6"],[10,"♭7"]], ch: [2],
+    about: "Švelnesnė Locrian versija. Džiazo gitaristai ją dažniau renkasi ant m7♭5.",
+    cmp: "Locrian, tik 2 pakelta (♮2).",
+    chTxt: "skiria Locrian ♮2 nuo Locrian ir sušvelnina skambesį.",
+    same: { iv: 3, q: "min", word: "melodic minor", n: 7 } },
+  dimwh: { q: "dim7", kind: "scale", btn: "Diminished", name: "diminished",
+    deg: [[0,"R"],[2,"2"],[3,"♭3"],[5,"4"],[6,"♭5"],[8,"♭6"],[9,"𝄫7",6],[11,"7"]], ch: [],
+    about: "Simetrinė gama: tonas ir pustonis pakaitomis. Formos kartojasi kas 3 ladus, todėl išmokę vieną, mokate visas.",
+    cmp: "8 natos: kas antra yra akordo nata, o tarp jų po vieną natą tonu aukščiau." },
+  wt: { q: "aug", kind: "scale", btn: "Whole tone", name: "whole tone",
+    deg: [[0,"R"],[2,"2"],[4,"3"],[6,"♯4"],[8,"♯5"],[10,"♭7"]], ch: [],
+    about: "Simetrinė gama vien iš tonų: sapniška, neapibrėžta. Formos kartojasi kas 2 ladus.",
+    cmp: "6 natos, visi tarpai po toną, todėl nėra nei kvartos, nei kvintos." },
   arp: { q: "*", kind: "arp", btn: "Arpedžas", name: "arpedžas",
     about: "Tik akordo natos. Grokite jas, kai akordas keičiasi: tada solo seka ne tik tonaciją, bet ir patį akordą." },
   p5: { q: "*", kind: "pair", btn: "Kvintos", name: "kvintos", iv: 7, lab: "5", deg: 5, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
@@ -373,9 +415,14 @@ const SETS = {
   p8: { q: "*", kind: "pair", btn: "Oktavos", name: "oktavos", iv: 12, lab: "R", deg: 1, pairs: [[5,3],[4,2],[3,1],[2,0]],
     about: "Ta pati nata per oktavą. Ja storinama melodija (Wes Montgomery stilius), be to, taip greitai randamas Root visame grife." }
 };
-const ORDER = { min: ["mpent", "aeo", "dor", "phr", "harm", "mel"], maj: ["Mpent", "ion", "lyd", "mix"], iv: ["arp", "p5", "p4", "p8"] };
+const ORDER = {
+  min: ["mpent", "aeo", "dor", "phr", "harm", "mel"], maj: ["Mpent", "ion", "lyd", "mix"],
+  dom7: ["mix", "mpent", "Mpent", "lyddom"], maj7: ["ion", "lyd", "Mpent"], m7: ["dor", "aeo", "phr", "mpent"],
+  m7b5: ["loc", "loc2"], dim7: ["dimwh"], aug: ["wt"],
+  iv: ["arp", "p5", "p4", "p8"]
+};
 const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
-const SET = () => SETS[S.set];
+const SET = () => { const st = SETS[S.set], o = st.ctx && st.ctx[S.q]; return o ? Object.assign({}, st, o) : st; };
 
 /* ---------- state */
 const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", tone: "el" };
@@ -388,27 +435,31 @@ try {
   }
 } catch (e) {}
 function fixSet() {
-  const st = SETS[S.set];
-  if (!st) S.set = S.q === "maj" ? "Mpent" : "mpent";
-  else if (st.q !== "*" && st.q !== S.q) S.set = QMAP[S.set] || (S.q === "maj" ? "Mpent" : "mpent");
+  if (!CH[S.q]) S.q = "min";
+  const list = ORDER[S.q];
+  if (ORDER.iv.includes(S.set) || list.includes(S.set)) return;
+  S.set = list.includes(QMAP[S.set]) ? QMAP[S.set] : list[0];
 }
 fixSet();
 function save() { try { localStorage.setItem("lempinio-solo-v1", JSON.stringify(S)); } catch (e) {} }
 
-const third = () => S.q === "min" ? 3 : 4;
-const chordIvs = () => [0, third(), 7];
-const chordNotes = () => [[0, 1], [third(), 3], [7, 5]].map(([i, d]) => nameAt(S.root, S.q, i, d));
+const chordIvs = () => CH[S.q].tones.map(t => t[0]);
+const chordNotes = () => CH[S.q].tones.map(([i, l, d]) => nameAt(S.root, S.q, i, d || degNum(l)));
+const chordLabs = () => CH[S.q].tones.slice(1).map(t => t[1]);
+/* a characteristic note that is also a chord tone (♭7 of Mixolydian on a 7 chord) is shown as a chord tone */
+const chOf = st => st.ch.filter(i => !chordIvs().includes(i));
 
 /* every interval the fretboard shows for the current set: label, category and spelled name */
 function degMap() {
   const st = SET(), r = S.root, m = new Map();
-  const add = (iv, l, c) => m.set(mod(iv), { l, c, name: nameAt(r, S.q, iv, degNum(l)) });
+  const add = (iv, l, c, d) => m.set(mod(iv), { l, c, name: nameAt(r, S.q, iv, d || degNum(l)) });
+  const T = chordIvs();
   if (st.kind === "scale") {
-    for (const [iv, l] of st.deg)
-      add(iv, l, iv === 0 ? "root" : (iv === third() || iv === 7) ? "strong" : st.ch.includes(iv) ? "char" : "weak");
+    for (const [iv, l, d] of st.deg)
+      add(iv, l, iv === 0 ? "root" : T.includes(iv) ? "strong" : st.ch.includes(iv) ? "char" : "weak", d);
     if (S.blue && st.blue) add(st.blue[0], st.blue[1], "blue");
   } else if (st.kind === "arp") {
-    add(0, "R", "root"); add(third(), S.q === "min" ? "♭3" : "3", "strong"); add(7, "5", "strong");
+    for (const [iv, l, d] of CH[S.q].tones) add(iv, l, iv === 0 ? "root" : "strong", d);
   } else {
     add(0, "R", "root"); if (st.iv !== 12) add(st.iv, st.lab, "strong");
   }
@@ -417,12 +468,12 @@ function degMap() {
 
 /* ---------- forms
    Scales: form k starts on the k-th scale note on the low E string and climbs the scale string by string:
-   2 notes per string for the pentatonic (5 forms), 3 per string for 7-note scales (7 forms).
-   Arpeggio: a 5-fret position starting on each chord tone of the low E string (3 forms).
+   2 notes per string for 5- and 6-note scales, 3 per string for 7- and 8-note scales; as many forms as notes.
+   Arpeggio: a 5-fret position starting on each chord tone of the low E string (3 or 4 forms).
    Interval pairs: one "form" per string pair, with every pair whose lower note is the Root. */
 const shape = strings => { const all = strings.flat(); return { strings, min: Math.min(...all), max: Math.max(...all) }; };
 function scaleForms(st) {
-  const r = S.root, P = st.deg.map(d => d[0]), n = P.length === 5 ? 2 : 3, pitches = [];
+  const r = S.root, P = st.deg.map(d => d[0]), n = P.length <= 6 ? 2 : 3, pitches = [];
   for (let m = 40; m <= 110; m++) if (P.includes(mod(m - r))) pitches.push(m);
   return P.map((iv, k) => {
     const m0 = 40 + mod(r + iv - 4), inst = [];
@@ -591,7 +642,7 @@ function drawAbout() {
   $("about").textContent = st.about;
   let h = "";
   if (st.kind === "scale") {
-    const ch = st.ch.map(i => map.get(i).name);
+    const ch = chOf(st).map(i => map.get(i).name);
     h += row(ch.length ? (ch.length > 1 ? "Būdingos natos" : "Būdinga nata") : "Lyginant", ch.join(" "), st.cmp);
     if (st.same) {
       const p = mod(r + st.same.iv), c = chordName(p, st.same.q);
@@ -604,7 +655,7 @@ function drawAbout() {
     }
     h += rootRows();
   } else if (st.kind === "arp") {
-    h += row("Akordo natos", chordNotes().join(" "), "3 formos: kiekviena prasideda nuo vis kitos akordo natos 6-oje stygoje.");
+    h += row("Akordo natos", chordNotes().join(" "), `${B.length} formos: kiekviena prasideda nuo vis kitos akordo natos 6-oje stygoje.`);
     h += rootRows();
   } else {
     for (const F of B) {
@@ -620,20 +671,20 @@ function swatch(cls) {
   return `<svg class="sw" viewBox="0 0 34 28" aria-hidden="true"><g class="note ${cls}"><circle cx="17" cy="14" r="9.5"/></g></svg>`;
 }
 function drawLegend() {
-  const st = SET(), min = S.q === "min", map = degMap(), items = [];
+  const st = SET(), map = degMap(), items = [], CT = andJoin(chordLabs());
   const labs = c => [...map.values()].filter(d => d.c === c).map(d => d.l);
   if (st.kind === "scale") {
     items.push(["n-root", "Root", "Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", true]);
-    items.push(["n-strong", "Stiprios", `${min ? "♭3 ir 5" : "3 ir 5"}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, true]);
-    if (st.ch.length) {
-      const L = st.deg.filter(d => st.ch.includes(d[0])).map(d => d[1]);
+    items.push(["n-strong", "Stiprios", `${CT}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, true]);
+    if (chOf(st).length) {
+      const L = chOf(st).map(i => map.get(i).l);
       items.push(["n-char", L.length > 1 ? "Būdingos" : "Būdinga", `${andJoin(L)}: ${L.length > 1 ? st.chTxt.replace("skiria", "jos skiria") : st.chTxt.replace("skiria", "ji skiria")}`, true]);
     }
-    items.push(["n-weak", "Silpnos", `${andJoin(labs("weak"))}: likusios gamos natos. Gerai skamba einant per jas į stiprią natą.`, true]);
+    if (labs("weak").length) items.push(["n-weak", "Silpnos", `${andJoin(labs("weak"))}: likusios gamos natos. Gerai skamba einant per jas į stiprią natą.`, true]);
     if (st.blue) items.push(["n-blue", "Blue nata", `${st.blue[1]}: bliuzo spalva. Slyskite per ją, nesustokite.${S.blue ? "" : " Įjunkite „Blue nata“."}`, S.blue]);
   } else if (st.kind === "arp") {
     items.push(["n-root", "Root", "Akordo pagrindas. Nuo jo patogiausia pradėti arpedžą.", true]);
-    items.push(["n-strong", "Stiprios", `${min ? "♭3 ir 5" : "3 ir 5"}: kitos akordo natos. Arpedžą sudaro tik jos.`, true]);
+    items.push(["n-strong", "Stiprios", `${CT}: kitos akordo natos. Arpedžą sudaro tik jos.`, true]);
   } else {
     items.push(["n-root", "Root", st.iv === 12 ? "Abi poros natos: ta pati nata per oktavą. Grokite jas kartu, o tarpinę stygą prislopinkite." : "Apatinė poros nata.", true]);
     if (st.iv === 7) items.push(["n-strong", "Kvinta", "5: viršutinė nata. Su Root sudaro power chord.", true]);
@@ -701,7 +752,7 @@ function drawControls() {
   const st = SET();
   $("scaleSets").innerHTML = ORDER[S.q].map(id => `<button data-v="${id}" aria-pressed="${id === S.set}">${SETS[id].btn}</button>`).join("");
   $("ivSets").innerHTML = ORDER.iv.map(id => `<button data-v="${id}" aria-pressed="${id === S.set}">${SETS[id].btn}</button>`).join("");
-  setPressed("qSeg", S.q);
+  $("qSeg").innerHTML = Object.keys(CH).map(q => `<button data-v="${q}" aria-pressed="${q === S.q}">${CH[q].btn}</button>`).join("");
   setPressed("labSeg", S.labels);
   setPressed("toneSeg", S.tone);
   $("blueSw").hidden = !st.blue;
@@ -717,7 +768,7 @@ function drawHead() {
   $("miniName").textContent = chordName(r, q);
   $("miniTones").textContent = chordNotes().join(" ");
   let notes;
-  if (st.kind === "scale") notes = st.deg.map(([i, l]) => nameAt(r, q, i, degNum(l))).join(" ");
+  if (st.kind === "scale") notes = st.deg.map(([i, l, d]) => nameAt(r, q, i, d || degNum(l))).join(" ");
   else if (st.kind === "arp") notes = chordNotes().join(" ");
   else notes = st.iv === 12 ? `${rootName(r, q)} + ${rootName(r, q)}` : `${rootName(r, q)} + ${map.get(st.iv).name}`;
   $("scaleTitle").textContent = st.kind === "pair" ? `${st.btn} nuo ${rootName(r, q)}` : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${st.name}`;
@@ -916,15 +967,23 @@ function pluck(s, midi, t, vel, single) {
   voices[s] = { src, g };
   src.onended = () => { if (voices[s] && voices[s].src === src) voices[s] = null; };
 }
+/* Chord shapes for the "Akordas" button: fret offsets from the root on string 6 (E shape) or string 5 (A shape), null = muted string. */
+const SHAPES = {
+  min:  { E: [0,2,2,0,0,0],          A: [0,2,2,1,0] },
+  maj:  { E: [0,2,2,1,0,0],          A: [0,2,2,2,0] },
+  dom7: { E: [0,2,0,1,0,0],          A: [0,2,0,2,0] },
+  maj7: { E: [0,2,1,1,0,0],          A: [0,2,1,2,0] },
+  m7:   { E: [0,2,0,0,0,0],          A: [0,2,0,1,0] },
+  m7b5: { E: [0,null,0,0,-1,null],   A: [0,1,0,1,null] },
+  dim7: { E: [0,null,-1,0,-1,null],  A: [0,1,2,1,2] },
+  aug:  { E: [0,null,2,1,1,null],    A: [0,3,2,2,1] }
+};
 function voicing() {
-  const r = S.root, p = mod(r - 4);
-  if (p <= 7) {
-    const fr = S.q === "maj" ? [p, p + 2, p + 2, p + 1, p, p] : [p, p + 2, p + 2, p, p, p];
-    return fr.map((f, i) => ({ s: 5 - i, m: OPEN[5 - i] + f }));
-  }
-  const q = mod(r - 9);
-  const fr = S.q === "maj" ? [q, q + 2, q + 2, q + 2, q] : [q, q + 2, q + 2, q + 1, q];
-  return fr.map((f, i) => ({ s: 4 - i, m: OPEN[4 - i] + f }));
+  const r = S.root, sh = SHAPES[S.q], p = mod(r - 4), q = mod(r - 9);
+  const lowE = sh.E.filter(x => x != null);
+  const useE = p <= 7 && p + Math.min(...lowE) >= 0;
+  const base = useE ? p : q, top = useE ? 5 : 4, offs = useE ? sh.E : sh.A;
+  return offs.map((o, i) => o == null ? null : { s: top - i, m: OPEN[top - i] + base + o }).filter(Boolean);
 }
 function strum(t, vel) {
   const el = S.tone === "el";
