@@ -1020,10 +1020,27 @@ $("playForm").addEventListener("click", () => {
 
 /* header motto: one guitarist's line per visit */
 const MOTTOS = [
-  ["If you're always playing the correct notes, there's something wrong – you're not searching; you're not reaching for anything.", "Joe Satriani"],
-  ["The beautiful thing about learning is that nobody can take it away from you.", "B.B. King"]
+  ["If you’re always playing the correct notes, there’s something wrong – you’re not searching; you’re not reaching for anything.", "Joe Satriani"],
+  ["The beautiful thing about learning is that nobody can take it away from you.", "B.B. King"],
+  ["Sometimes a couple notes are worth a thousand words.", "Paul Gilbert"],
+  ["Speed is a byproduct of good, slow practice.", "Guthrie Govan"],
+  ["There’s a melody in everything. And once you find the melody, then you connect immediately with the heart.", "Carlos Santana"],
+  ["I never work out my leads. Everything I do is usually totally spontaneous.", "Ritchie Blackmore"],
+  ["Great musicians, you don’t just hear them, you feel them.", "Zakk Wylde"],
+  ["I kept listening, kept going to see people, kept sitting in with people, kept listening to records.", "Stevie Ray Vaughan"],
+  ["You’re going to be most successful at the things you’re most excited to do.", "Steve Vai"],
+  ["Give me a guitar, give me a piano, give me a broom and string; I wouldn’t get bored anywhere.", "Keith Richards"],
+  ["Music doesn’t lie.", "Jimi Hendrix"],
+  ["Playing music to me is as close to having super powers as you can have.", "John Mayer"],
+  ["Music should be made to make people forget their problems, if only for a short while.", "Chuck Berry"]
 ];
-{ const [t, a] = MOTTOS[Math.floor(Math.random() * MOTTOS.length)]; $("motto").innerHTML = `“${t}” <i>– ${a}</i>`; }
+/* random each visit, but never the same line twice in a row */
+{
+  let last = -1; try { last = +(localStorage.getItem("lempinio-solo-motto") ?? -1); } catch (e) {}
+  let i = Math.floor(Math.random() * MOTTOS.length); if (i === last) i = (i + 1) % MOTTOS.length;
+  try { localStorage.setItem("lempinio-solo-motto", String(i)); } catch (e) {}
+  const [t, a] = MOTTOS[i]; $("motto").innerHTML = `“${t}” <i>– ${a}</i>`;
+}
 
 render(true);
 })();
