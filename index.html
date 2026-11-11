@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: Lempinis amp head — grille header, chord selector panel, the fretboard as the dark "screen", switches, then three cards: where to jam, what the notes mean, the shape as tab. */
+/* Layout: Lempinis amp head — grille header, chord + scale/interval selector panel, the fretboard as the dark "screen", switches, then three cards: about the set, what the notes mean, the shape as tab. */
 :root{
   --bg:#dfe2dc;
   --panel:#eef0eb;
@@ -32,6 +32,10 @@
   --b3:#a594ea;
   --b4:#dcc65a;
   --b5:#62a4e6;
+  --b6:#e07aa5;
+  --b7:#8fc463;
+  --n-char:#a8326a;
+  --n-char-ring:#f39ac4;
   --font-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
   --font-body:"Barlow","Segoe UI",Roboto,system-ui,sans-serif;
   --font-mono:"Chivo Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -112,6 +116,12 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .box path{fill-opacity:.09;stroke-width:1.5;stroke-opacity:.55;stroke-linejoin:round;cursor:pointer}
 .box.b0 path{fill:var(--b1);stroke:var(--b1)}.box.b1 path{fill:var(--b2);stroke:var(--b2)}.box.b2 path{fill:var(--b3);stroke:var(--b3)}
 .box.b3 path{fill:var(--b4);stroke:var(--b4)}.box.b4 path{fill:var(--b5);stroke:var(--b5)}
+.box.b5 path{fill:var(--b6);stroke:var(--b6)}.box.b6 path{fill:var(--b7);stroke:var(--b7)}
+.blab.b5 circle{stroke:var(--b6)}.blab.b5 text{fill:var(--b6)}.blab.b6 circle{stroke:var(--b7)}.blab.b6 text{fill:var(--b7)}
+.pair{cursor:pointer}
+.pair line{stroke-width:14;stroke-linecap:round;stroke-opacity:.38}
+.pair.b0 line{stroke:var(--b1)}.pair.b1 line{stroke:var(--b2)}.pair.b2 line{stroke:var(--b3)}.pair.b3 line{stroke:var(--b4)}.pair.b4 line{stroke:var(--b5)}
+.pair.sel line{stroke:var(--accent);stroke-opacity:.7}
 .box.sel path{fill:var(--accent);stroke:var(--accent);fill-opacity:.15;stroke-opacity:.95;stroke-width:2}
 .blab{cursor:pointer}
 .blab circle{fill:var(--screen);stroke-width:1.5}
@@ -127,10 +137,20 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .n-strong circle{fill:var(--screen-ink);stroke:var(--screen-ink)}.n-strong text{fill:var(--screen)}
 .n-weak circle{fill:var(--screen);stroke:var(--screen-ink)}.n-weak text{fill:var(--screen-ink)}
 .n-gama circle{fill:var(--screen);stroke:var(--screen-dim);stroke-dasharray:3 2.4}.n-gama text{fill:var(--screen-dim)}
+.n-char circle{fill:var(--n-char);stroke:var(--n-char-ring)}.n-char text{fill:#fff}
+.note text.sm{font-size:9px;letter-spacing:-.02em}
 .n-blue circle{fill:var(--n-blue);stroke:var(--n-blue-ring)}.n-blue text{fill:var(--screen-ink)}
 .note.dim{opacity:.13}
 .note.hit circle{animation:hit .45s ease-out}
 @keyframes hit{from{stroke:var(--accent);stroke-width:7}}
+
+/* scale and interval sets */
+.sets{display:flex;flex-wrap:wrap;gap:10px 24px;border-top:1px solid var(--line);padding-top:12px}
+.set-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.set-row .ctl-l{min-width:74px}
+.sets .seg button{font-size:13.5px;font-weight:600;padding:7px 11px}
+.about{margin:0;font-size:14px}
+.btn.ghost{background:transparent;color:var(--ink)}
 
 /* controls */
 .controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center}
@@ -151,6 +171,7 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .jrow b{font-weight:600}
 .jrow .fr{font-family:var(--font-display);font-weight:800;font-size:26px;line-height:1;text-align:right}
 .jrow .sub{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.jrow b button{border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px}
 .jrow .sub button{border:0;background:none;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 .help{font-size:13px;color:var(--muted);margin:0}
 .help b{color:var(--ink);font-weight:600}
@@ -166,6 +187,7 @@ pre.tab .t-root{color:var(--accent);font-weight:600}
 pre.tab .t-strong{color:var(--screen-ink);font-weight:600}
 pre.tab .t-weak{color:var(--screen-dim)}
 pre.tab .t-gama{color:var(--screen-dim);opacity:.6}
+pre.tab .t-char{color:var(--n-char-ring);font-weight:600}
 pre.tab .t-blue{color:var(--n-blue-ring)}
 .credit{margin:0;text-align:right;font-family:var(--font-mono);font-size:10.5px;color:var(--muted);opacity:.6}
 .credit a{color:inherit}
@@ -187,7 +209,7 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
   <header class="top">
     <div class="brand">
       <span class="pilot" id="pilot" aria-hidden="true"></span>
-      <div><h1>Lempinio solo</h1><small>kur groti solo pagal akordą</small></div>
+      <div><h1>Lempinio solo</h1><small>gamos ir intervalai solo pagal akordą</small></div>
     </div>
     <div class="readout" aria-live="polite">
       <h2 id="chordName">Am</h2>
@@ -203,15 +225,16 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
       </div>
     </div>
     <div class="roots" id="roots" role="group" aria-label="Akordo Root nata"></div>
+    <div class="sets">
+      <div class="set-row"><span class="ctl-l">Gamos</span><div class="seg" id="scaleSets" role="group" aria-label="Gamos"></div></div>
+      <div class="set-row"><span class="ctl-l">Intervalai</span><div class="seg" id="ivSets" role="group" aria-label="Intervalai"></div></div>
+    </div>
   </section>
 
   <div class="board" id="board"><svg id="fb" viewBox="0 0 1000 248" aria-label="Gitaros grifas su solo natomis. Bakstelėk natą, kad išgirstum."></svg></div>
   <div class="board-foot"><span>e viršuje, E apačioje · bakstelėk natą, kad išgirstum</span><span id="footBox"></span></div>
 
   <div class="controls">
-    <div class="ctl"><span class="ctl-l">Gama</span>
-      <div class="seg" id="scaleSeg"><button data-v="pent">Pentatonika</button><button data-v="full">Pilna gama</button></div>
-    </div>
     <button class="switch" id="blueSw" aria-pressed="false"><i></i>Blue nata</button>
     <div class="ctl">
       <button class="switch" id="groupSw" aria-pressed="true"><i></i>Formos</button>
@@ -224,7 +247,8 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
 
   <div class="cards">
     <section class="card">
-      <span class="label">Kur jamminti</span>
+      <span class="label" id="aboutTitle">Apie gamą</span>
+      <p class="about" id="about"></p>
       <div class="jam" id="jam"></div>
     </section>
     <section class="card">
@@ -237,7 +261,8 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
       <p class="help" id="tabHelp"></p>
       <div class="mini">
         <span class="mini-chord"><b id="miniName">Am</b><span id="miniTones">A C E</span></span>
-        <button class="btn sm" id="strum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Groti</button>
+        <button class="btn sm" id="strum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Akordas</button>
+        <button class="btn sm ghost" id="playForm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Forma</button>
         <div class="seg tone sm" id="toneSeg" role="group" aria-label="Gitara"><button data-v="aco">Akustinė</button><button data-v="el">Elektrinė</button></div>
       </div>
     </section>
@@ -259,52 +284,192 @@ const MAXF = 17;
 const SHARP = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
 const FLAT  = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
 const FLAT_KEYS = { maj: new Set([1,3,5,8,10]), min: new Set([0,2,3,5,7,10]) };
-const SCALES = {
-  min: { word: "minoro", deg: [[0,"R","root"],[2,"2","gama"],[3,"♭3","strong"],[5,"4","weak"],[7,"5","strong"],[8,"♭6","gama"],[10,"♭7","weak"]], blue: [6,"♭5"] },
-  maj: { word: "mažoro", deg: [[0,"R","root"],[2,"2","weak"],[4,"3","strong"],[5,"4","gama"],[7,"5","strong"],[9,"6","weak"],[11,"7","gama"]], blue: [3,"♭3"] }
-};
 const spellArr = (pc, q) => FLAT_KEYS[q].has(pc) ? FLAT : SHARP;
-const spell = (pc, q, n) => spellArr(pc, q)[mod(n)];
-const chordName = (pc, q) => spell(pc, q, pc) + (q === "min" ? "m" : "");
+const rootName = (pc, q) => spellArr(pc, q)[mod(pc)];
+const chordName = (pc, q) => rootName(pc, q) + (q === "min" ? "m" : "");
+
+/* Letter spelling: scale degree n sits n-1 letters above the root letter, so D harmonic minor gets both B♭ and C♯. */
+const LET = "CDEFGAB", NATPC = [0, 2, 4, 5, 7, 9, 11];
+const ACC = { "-2": "𝄫", "-1": "♭", "0": "", "1": "♯", "2": "𝄪" };
+function nameAt(r, q, iv, deg) {
+  const rn = rootName(r, q), li = (LET.indexOf(rn[0]) + deg - 1) % 7;
+  let d = mod(r + iv - NATPC[li]); if (d > 6) d -= 12;
+  return LET[li] + (ACC[d] ?? "");
+}
+const degNum = l => l === "R" ? 1 : +l.replace(/[♭♯]/g, "");
+const andJoin = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " ir " + a[a.length - 1];
+
+/* Sets. q: which chord they belong to ("*" = both). ch: characteristic notes (what makes the scale sound like itself).
+   same: interval and quality of the scale with the same notes; cmp: how it differs from the plain minor/major. */
+const MIN7 = [[0,"R"],[2,"2"],[3,"♭3"],[5,"4"],[7,"5"]];
+const MAJ5 = [[0,"R"],[2,"2"],[4,"3"],[5,"4"],[7,"5"]];
+const SETS = {
+  mpent: { q: "min", kind: "scale", btn: "Pentatonic", name: "minor pentatonic",
+    deg: [[0,"R"],[3,"♭3"],[5,"4"],[7,"5"],[10,"♭7"]], blue: [6, "♭5"], ch: [],
+    about: "Saugiausias pasirinkimas solo: rokas, bliuzas, popsas. Penkios natos, ir nė viena nesikerta su akordu.",
+    cmp: "Natural minor be 2 ir ♭6.",
+    same: { iv: 3, q: "maj", word: "major pentatonic", n: 5 } },
+  aeo: { q: "min", kind: "scale", btn: "Natural minor", name: "natural minor",
+    deg: [...MIN7, [8,"♭6"], [10,"♭7"]], ch: [8],
+    about: "Klasikinis, liūdnas minoras: rokas, metalas, baladės.",
+    cmp: "Pentatonika ir dar dvi natos: 2 ir ♭6.",
+    chTxt: "skiria Natural minor nuo Dorian ir suteikia liūdesio.",
+    same: { iv: 3, q: "maj", word: "Major", n: 7 } },
+  dor: { q: "min", kind: "scale", btn: "Dorian", name: "Dorian",
+    deg: [...MIN7, [9,"6"], [10,"♭7"]], ch: [9],
+    about: "Šviesesnis, pakylėtas minoras: funk, soul, lotynų rokas, džiazas.",
+    cmp: "Natural minor, tik 6 pakelta pustoniu.",
+    chTxt: "skiria Dorian nuo Natural minor. Užgaukite ją, ir išgirsite gamos spalvą.",
+    same: { iv: 10, q: "maj", word: "Major", n: 7 } },
+  phr: { q: "min", kind: "scale", btn: "Phrygian", name: "Phrygian",
+    deg: [[0,"R"],[1,"♭2"],[3,"♭3"],[5,"4"],[7,"5"],[8,"♭6"],[10,"♭7"]], ch: [1],
+    about: "Tamsus, įtemptas, ispaniškas atspalvis: metalas, flamenkas.",
+    cmp: "Natural minor, tik 2 nuleista pustoniu (♭2).",
+    chTxt: "skiria Phrygian nuo Natural minor. Ypač gerai skamba judesys ♭2 → R.",
+    same: { iv: 8, q: "maj", word: "Major", n: 7 } },
+  harm: { q: "min", kind: "scale", btn: "Harmonic minor", name: "harmonic minor",
+    deg: [...MIN7, [8,"♭6"], [11,"7"]], ch: [11],
+    about: "Neoklasikinis, rytietiškas skambesys: Yngwie Malmsteen, metalas, klezmeris.",
+    cmp: "Natural minor, tik ♭7 pakelta į 7. Tarp ♭6 ir 7 lieka pusantro tono tarpas.",
+    chTxt: "skiria Harmonic minor nuo Natural minor. Ji traukia į Root, todėl tinka frazei užbaigti.",
+    also: { iv: 7, q: "maj", suf: "7", txt: (c, h) => `Kai ${c} veda atgal į ${h}, harmoninis minoras ant jo skamba geriausiai.` } },
+  mel: { q: "min", kind: "scale", btn: "Melodic minor", name: "melodic minor",
+    deg: [...MIN7, [9,"6"], [11,"7"]], ch: [9, 11],
+    about: "Džiazo minoras: apačia minorinė, viršus mažorinis.",
+    cmp: "Natural minor, tik 6 ir 7 pakeltos. Arba Major su ♭3.",
+    chTxt: "skiria Melodic minor nuo Natural minor. Kylant gama skamba beveik kaip Major.",
+    also: { iv: 0, q: "min", suf: "6", txt: c => `Taip pat tinka ant ${c.replace("6", "(maj7)")}: džiaze tai jo pagrindinė gama.` } },
+  Mpent: { q: "maj", kind: "scale", btn: "Pentatonic", name: "major pentatonic",
+    deg: [[0,"R"],[2,"2"],[4,"3"],[7,"5"],[9,"6"]], blue: [3, "♭3"], ch: [],
+    about: "Šviesi ir saugi: kantri, popsas, southern rokas.",
+    cmp: "Major be 4 ir 7.",
+    same: { iv: 9, q: "min", word: "minor pentatonic", n: 5 } },
+  ion: { q: "maj", kind: "scale", btn: "Major", name: "Major",
+    deg: [...MAJ5, [9,"6"], [11,"7"]], ch: [],
+    about: "Šviesus, stabilus skambesys: popsas, kantri, liaudies dainos.",
+    cmp: "Pentatonika ir dar dvi natos: 4 ir 7. 4 kertasi su 3, todėl ant jos ilgai nesustokite.",
+    same: { iv: 9, q: "min", word: "natural minor", n: 7 } },
+  lyd: { q: "maj", kind: "scale", btn: "Lydian", name: "Lydian",
+    deg: [[0,"R"],[2,"2"],[4,"3"],[6,"♯4"],[7,"5"],[9,"6"],[11,"7"]], ch: [6],
+    about: "Sapniškas, plaukiantis skambesys: kino muzika, Joe Satriani, Steve Vai.",
+    cmp: "Major, tik 4 pakelta pustoniu (♯4).",
+    chTxt: "skiria Lydian nuo Major. Palaikykite ją ilgiau, ir išgirsite sapnišką spalvą.",
+    same: { iv: 7, q: "maj", word: "Major", n: 7 } },
+  mix: { q: "maj", kind: "scale", btn: "Mixolydian", name: "Mixolydian",
+    deg: [...MAJ5, [9,"6"], [10,"♭7"]], ch: [10],
+    about: "Major su bliuzo prieskoniu: rokas, bliuzas, funk, kantri.",
+    cmp: "Major, tik 7 nuleista pustoniu (♭7).",
+    chTxt: "skiria Mixolydian nuo Major. Su ja mažoras skamba bliuziškai.",
+    same: { iv: 5, q: "maj", word: "Major", n: 7 },
+    also: { iv: 0, q: "maj", suf: "7", txt: () => "Ant dominantinio septakordo tai pagrindinė gama." } },
+  arp: { q: "*", kind: "arp", btn: "Arpedžas", name: "arpedžas",
+    about: "Tik akordo natos. Grokite jas, kai akordas keičiasi: tada solo seka ne tik tonaciją, bet ir patį akordą." },
+  p5: { q: "*", kind: "pair", btn: "Kvintos", name: "kvintos", iv: 7, lab: "5", deg: 5, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
+    about: "Root ir kvinta kartu yra power chord. Tinka ir minoriniam, ir mažoriniam akordui, nes tercijos čia nėra." },
+  p4: { q: "*", kind: "pair", btn: "Kvartos", name: "kvartos", iv: 5, lab: "4", deg: 4, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
+    about: "Root ir kvarta: atviras, sus4 skambesys. Klasikinis judesys: sugroti kvartą, o viršutinę natą nuleisti į tercią." },
+  p8: { q: "*", kind: "pair", btn: "Oktavos", name: "oktavos", iv: 12, lab: "R", deg: 1, pairs: [[5,3],[4,2],[3,1],[2,0]],
+    about: "Ta pati nata per oktavą. Ja storinama melodija (Wes Montgomery stilius), be to, taip greitai randamas Root visame grife." }
+};
+const ORDER = { min: ["mpent", "aeo", "dor", "phr", "harm", "mel"], maj: ["Mpent", "ion", "lyd", "mix"], iv: ["arp", "p5", "p4", "p8"] };
+const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
+const SET = () => SETS[S.set];
 
 /* ---------- state */
-const DEF = { root: 9, q: "min", full: false, blue: false, group: true, box: -1, labels: "names", tone: "el" };
+const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", tone: "el" };
 const S = Object.assign({}, DEF);
 try {
   const v = JSON.parse(localStorage.getItem("lempinio-solo-v1") || "null");
-  if (v && typeof v === "object") for (const k in DEF) if (typeof v[k] === typeof DEF[k]) S[k] = v[k];
+  if (v && typeof v === "object") {
+    for (const k in DEF) if (typeof v[k] === typeof DEF[k]) S[k] = v[k];
+    if (!("set" in v) && v.full) S.set = S.q === "maj" ? "ion" : "aeo";   /* old "Pilna gama" switch */
+  }
 } catch (e) {}
+function fixSet() {
+  const st = SETS[S.set];
+  if (!st) S.set = S.q === "maj" ? "Mpent" : "mpent";
+  else if (st.q !== "*" && st.q !== S.q) S.set = QMAP[S.set] || (S.q === "maj" ? "Mpent" : "mpent");
+}
+fixSet();
 function save() { try { localStorage.setItem("lempinio-solo-v1", JSON.stringify(S)); } catch (e) {} }
 
+const third = () => S.q === "min" ? 3 : 4;
+const chordIvs = () => [0, third(), 7];
+const chordNotes = () => [[0, 1], [third(), 3], [7, 5]].map(([i, d]) => nameAt(S.root, S.q, i, d));
+
+/* every interval the fretboard shows for the current set: label, category and spelled name */
 function degMap() {
-  const m = new Map();
-  for (const [i, l, c] of SCALES[S.q].deg) { if (c === "gama" && !S.full) continue; m.set(i, { l, c }); }
-  if (S.blue) { const [i, l] = SCALES[S.q].blue; m.set(i, { l, c: "blue" }); }
+  const st = SET(), r = S.root, m = new Map();
+  const add = (iv, l, c) => m.set(mod(iv), { l, c, name: nameAt(r, S.q, iv, degNum(l)) });
+  if (st.kind === "scale") {
+    for (const [iv, l] of st.deg)
+      add(iv, l, iv === 0 ? "root" : (iv === third() || iv === 7) ? "strong" : st.ch.includes(iv) ? "char" : "weak");
+    if (S.blue && st.blue) add(st.blue[0], st.blue[1], "blue");
+  } else if (st.kind === "arp") {
+    add(0, "R", "root"); add(third(), S.q === "min" ? "♭3" : "3", "strong"); add(7, "5", "strong");
+  } else {
+    add(0, "R", "root"); if (st.iv !== 12) add(st.iv, st.lab, "strong");
+  }
   return m;
 }
-const pentInts = () => SCALES[S.q].deg.filter(d => d[2] !== "gama").map(d => d[0]);
-function noteName(pc, cat) { return cat === "blue" ? FLAT[pc] : spell(S.root, S.q, pc); }
 
-/* Five pentatonic boxes: box k starts on the k-th scale note on the low E string, two notes per string going up. */
-function boxes() {
-  const r = S.root, P = pentInts(), pitches = [];
-  for (let m = 40; m <= 100; m++) if (P.includes(mod(m - r))) pitches.push(m);
+/* ---------- forms
+   Scales: form k starts on the k-th scale note on the low E string and climbs the scale string by string:
+   2 notes per string for the pentatonic (5 forms), 3 per string for 7-note scales (7 forms).
+   Arpeggio: a 5-fret position starting on each chord tone of the low E string (3 forms).
+   Interval pairs: one "form" per string pair, with every pair whose lower note is the Root. */
+const shape = strings => { const all = strings.flat(); return { strings, min: Math.min(...all), max: Math.max(...all) }; };
+function scaleForms(st) {
+  const r = S.root, P = st.deg.map(d => d[0]), n = P.length === 5 ? 2 : 3, pitches = [];
+  for (let m = 40; m <= 110; m++) if (P.includes(mod(m - r))) pitches.push(m);
   return P.map((iv, k) => {
     const m0 = 40 + mod(r + iv - 4), inst = [];
     for (const off of [0, 12]) {
       const i0 = pitches.indexOf(m0 + off); if (i0 < 0) continue;
       const strings = []; let ok = true;
-      for (let s = 5; s >= 0; s--) {
-        const j = i0 + (5 - s) * 2;
-        if (pitches[j + 1] === undefined) { ok = false; break; }
-        const a = pitches[j] - OPEN[s], b = pitches[j + 1] - OPEN[s];
-        if (a < 0 || b > MAXF) { ok = false; break; }
-        strings[s] = [a, b];
+      for (let s = 5; s >= 0 && ok; s--) {
+        const fr = [];
+        for (let t = 0; t < n; t++) {
+          const p = pitches[i0 + (5 - s) * n + t], f = p - OPEN[s];
+          if (p === undefined || f < 0 || f > MAXF) { ok = false; break; }
+          fr.push(f);
+        }
+        strings[s] = fr;
       }
-      if (ok) { const all = strings.flat(); inst.push({ strings, min: Math.min(...all), max: Math.max(...all) }); }
+      if (ok) inst.push(shape(strings));
     }
-    return { k, inst };
+    return { k, label: String(k + 1), inst };
   });
+}
+function arpForms() {
+  const r = S.root, T = chordIvs();
+  return T.map((iv, k) => {
+    const inst = [];
+    for (const off of [0, 12]) {
+      const a = Math.max(0, mod(r + iv - 4) + off - 1), b = a + 4;
+      if (b > MAXF) continue;
+      const strings = [];
+      for (let s = 0; s < 6; s++) {
+        strings[s] = [];
+        for (let f = a; f <= b; f++) if (T.includes(mod(OPEN[s] + f - r))) strings[s].push(f);
+      }
+      inst.push(shape(strings));
+    }
+    return { k, label: String(k + 1), inst };
+  });
+}
+function pairForms(st) {
+  const r = S.root;
+  return st.pairs.map(([s1, s2], k) => {
+    const d = st.iv - (OPEN[s2] - OPEN[s1]), pairs = [];
+    for (let f = 0; f <= MAXF; f++)
+      if (mod(OPEN[s1] + f - r) === 0 && f + d >= 0 && f + d <= MAXF) pairs.push({ s1, f1: f, s2, f2: f + d });
+    return { k, label: `${s1 + 1}–${s2 + 1}`, pairs, d, s1, s2 };
+  });
+}
+function forms() {
+  const st = SET();
+  return st.kind === "pair" ? pairForms(st) : st.kind === "arp" ? arpForms() : scaleForms(st);
 }
 
 /* ---------- fretboard geometry */
@@ -316,22 +481,35 @@ const sy = s => TOP + s * GAP;
 const R = 12;
 
 let B = [];
+const isPair = () => SET().kind === "pair";
+const formSel = () => S.group && S.box >= 0;
 function inSel(s, f, cat) {
-  if (!(S.group && S.box >= 0)) return true;
-  for (const I of B[S.box].inst) {
-    const [a, b] = I.strings[s];
-    if (cat === "gama" || cat === "blue") { if (f >= a - 1 && f <= b + 1 && f >= I.min - 1 && f <= I.max + 1) return true; }
-    else if (f === a || f === b) return true;
+  if (!formSel()) return true;
+  const F = B[S.box];
+  if (isPair()) return F.pairs.some(p => (p.s1 === s && p.f1 === f) || (p.s2 === s && p.f2 === f));
+  for (const I of F.inst) {
+    const fr = I.strings[s]; if (!fr.length) continue;
+    if (cat === "blue") { if (f >= fr[0] - 1 && f <= fr[fr.length - 1] + 1) return true; }
+    else if (fr.includes(f)) return true;
   }
   return false;
 }
 function boxPath(I) {
-  const p = 16, L = s => nx(I.strings[s][0]) - p, Rr = s => nx(I.strings[s][1]) + p;
-  let d = `M${L(0).toFixed(1)},${sy(0) - p}`;
-  for (let s = 0; s < 6; s++) d += ` L${L(s).toFixed(1)},${sy(s)}`;
-  d += ` L${L(5).toFixed(1)},${sy(5) + p} L${Rr(5).toFixed(1)},${sy(5) + p}`;
-  for (let s = 5; s >= 0; s--) d += ` L${Rr(s).toFixed(1)},${sy(s)}`;
-  return d + ` L${Rr(0).toFixed(1)},${sy(0) - p} Z`;
+  const p = 16, lo = [], hi = [];
+  /* a string with no note in an arpeggio position borrows the neighbour's edge */
+  for (let s = 0; s < 6; s++) {
+    const fr = I.strings[s];
+    lo[s] = fr.length ? nx(fr[0]) - p : null; hi[s] = fr.length ? nx(fr[fr.length - 1]) + p : null;
+  }
+  for (let s = 0; s < 6; s++) if (lo[s] == null) {
+    const nb = [s - 1, s + 1].filter(t => t >= 0 && t < 6 && lo[t] != null);
+    lo[s] = Math.min(...nb.map(t => lo[t])); hi[s] = Math.max(...nb.map(t => hi[t]));
+  }
+  let d = `M${lo[0].toFixed(1)},${sy(0) - p}`;
+  for (let s = 0; s < 6; s++) d += ` L${lo[s].toFixed(1)},${sy(s)}`;
+  d += ` L${lo[5].toFixed(1)},${sy(5) + p} L${hi[5].toFixed(1)},${sy(5) + p}`;
+  for (let s = 5; s >= 0; s--) d += ` L${hi[s].toFixed(1)},${sy(s)}`;
+  return d + ` L${hi[0].toFixed(1)},${sy(0) - p} Z`;
 }
 
 function drawBoard() {
@@ -350,8 +528,15 @@ function drawBoard() {
     const mk = [3, 5, 7, 9, 12, 15, 17].includes(f);
     o.push(`<text class="fnum${mk ? " mk" : ""}" x="${nx(f)}" y="${sy(5) + 36}">${f}</text>`);
   }
-  /* boxes */
-  if (S.group) {
+  if (S.group && isPair()) {
+    /* interval pairs: a bar joining the two notes played together */
+    B.forEach(F => {
+      const sel = S.box === F.k;
+      if (S.box >= 0 && !sel) return;
+      for (const p of F.pairs)
+        o.push(`<g class="pair b${F.k}${sel ? " sel" : ""}" data-box="${F.k}"><line x1="${nx(p.f1).toFixed(1)}" y1="${sy(p.s1)}" x2="${nx(p.f2).toFixed(1)}" y2="${sy(p.s2)}"/></g>`);
+    });
+  } else if (S.group) {
     const labs = [];
     B.forEach(b => b.inst.forEach(I => {
       const sel = S.box === b.k;
@@ -359,23 +544,23 @@ function drawBoard() {
       o.push(`<g class="box b${b.k}${sel ? " sel" : ""}" data-box="${b.k}"><path d="${boxPath(I)}"/></g>`);
       labs.push({ k: b.k, x: (nx(I.min) + nx(I.max)) / 2, sel });
     }));
-    /* keep labels from colliding */
+    /* keep labels from colliding: up to three rows */
     labs.sort((a, b) => a.x - b.x);
-    let last = -99, row = 0;
+    const lastX = [-99, -99, -99];
     for (const l of labs) {
-      row = (l.x - last < 26) ? 1 - row : 0; last = l.x;
-      const y = 17, lx = row ? l.x + 13 : l.x;
+      let row = lastX.findIndex(x => l.x - x >= 25); if (row < 0) row = 0;
+      lastX[row] = l.x;
+      const lx = l.x + (row === 1 ? 13 : row === 2 ? -13 : 0), y = 17;
       o.push(`<g class="blab b${l.k}${l.sel ? " sel" : ""}" data-box="${l.k}"><circle cx="${lx}" cy="${y}" r="11"/><text x="${lx}" y="${y}" dy=".36em">${l.k + 1}</text></g>`);
     }
   }
-  /* notes */
   for (let s = 0; s < 6; s++) for (let f = 0; f <= MAXF; f++) {
     const pc = mod(OPEN[s] + f), iv = mod(pc - S.root), d = map.get(iv);
     if (!d) continue;
-    const lab = S.labels === "ints" ? d.l : noteName(pc, d.c);
+    const lab = S.labels === "ints" ? d.l : d.name;
     const dim = !inSel(s, f, d.c);
     const r = d.c === "root" ? R + 1 : R;
-    o.push(`<g class="note n-${d.c}${dim ? " dim" : ""}" data-s="${s}" data-f="${f}"><circle cx="${nx(f).toFixed(1)}" cy="${sy(s)}" r="${r}"/><text x="${nx(f).toFixed(1)}" y="${sy(s)}" dy=".36em">${lab}</text></g>`);
+    o.push(`<g class="note n-${d.c}${dim ? " dim" : ""}" data-s="${s}" data-f="${f}"><circle cx="${nx(f).toFixed(1)}" cy="${sy(s)}" r="${r}"/><text x="${nx(f).toFixed(1)}" y="${sy(s)}" dy=".36em"${lab.length > 2 ? ' class="sm"' : ""}>${lab}</text></g>`);
   }
   $("fb").innerHTML = o.join("");
 }
@@ -384,105 +569,168 @@ function drawBoard() {
 function boxRange(k) {
   return B[k].inst.map(I => I.min === I.max ? `${I.min}` : `${I.min}–${I.max}`).join(" ir ");
 }
-function rootBoxOn(stringIdx) {
-  for (const b of B) { const I = b.inst[0]; if (I && mod(OPEN[stringIdx] + I.strings[stringIdx][0]) === S.root) return b.k; }
+function rootBoxOn(s) {
+  for (const b of B) for (const I of b.inst) { const fr = I.strings[s]; if (fr.length && mod(OPEN[s] + fr[0]) === S.root) return b.k; }
   return 0;
 }
 function fretsOf(pcOpen) {
   const f = mod(S.root - pcOpen); return f + 12 <= MAXF ? `${f} / ${f + 12}` : `${f}`;
 }
-function drawJam() {
+const row = (b, fr, sub) => `<div class="jrow"><b>${b}</b><span class="fr">${fr}</span><span class="sub">${sub}</span></div>`;
+const pick = (k, t) => `<button data-pick="${k}">${t}</button>`;
+function rootRows() {
   const k6 = rootBoxOn(5), k5 = rootBoxOn(4);
-  const rel = S.q === "min" ? chordName(mod(S.root + 3), "maj") : chordName(mod(S.root + 9), "min");
-  const relWord = S.q === "min" ? "mažoro" : "minoro";
-  $("jam").innerHTML = `
-    <div class="jrow"><b>Root 6-oje stygoje</b><span class="fr">${fretsOf(4)}</span>
-      <span class="sub">Root: <button data-pick="${k6}">${k6 + 1} forma</button>, ${boxRange(k6)} ladai</span></div>
-    <div class="jrow"><b>Root 5-oje stygoje</b><span class="fr">${fretsOf(9)}</span>
-      <span class="sub">Root: <button data-pick="${k5}">${k5 + 1} forma</button>, ${boxRange(k5)} ladai</span></div>
-    <div class="jrow"><b>Paralelinė pentatonika</b><span class="fr">${rel}</span>
-      <span class="sub">Tos pačios 5 natos ir formos kaip ${rel} ${relWord} pentatonikos, tik kitas Root.</span></div>`;
+  return row("Root 6-oje stygoje", fretsOf(4), `Root: ${pick(k6, `${k6 + 1} forma`)}, ${boxRange(k6)} ladai`) +
+         row("Root 5-oje stygoje", fretsOf(9), `Root: ${pick(k5, `${k5 + 1} forma`)}, ${boxRange(k5)} ladai`);
+}
+function drawAbout() {
+  const st = SET(), r = S.root, q = S.q, map = degMap();
+  $("aboutTitle").textContent = st.kind === "pair" ? "Apie dvigarsius" : st.kind === "arp" ? "Apie arpedžą" : "Apie gamą";
+  $("about").textContent = st.about;
+  let h = "";
+  if (st.kind === "scale") {
+    const ch = st.ch.map(i => map.get(i).name);
+    h += row(ch.length ? (ch.length > 1 ? "Būdingos natos" : "Būdinga nata") : "Lyginant", ch.join(" "), st.cmp);
+    if (st.same) {
+      const p = mod(r + st.same.iv), c = chordName(p, st.same.q);
+      h += row("Tos pačios natos kaip", c,
+        `${rootName(p, st.same.q)} ${st.same.word}: tos pačios ${st.same.n} natos${st.same.n === 5 ? " ir formos" : ""}, tik Root kitas. Frazes baikite ant ${rootName(r, q)}.`);
+    }
+    if (st.also) {
+      const p = mod(r + st.also.iv), c = rootName(p, st.also.q) + (st.also.q === "min" ? "m" : "") + st.also.suf;
+      h += row("Dar tinka ant", c, st.also.txt(c, chordName(r, q)));
+    }
+    h += rootRows();
+  } else if (st.kind === "arp") {
+    h += row("Akordo natos", chordNotes().join(" "), "3 formos: kiekviena prasideda nuo vis kitos akordo natos 6-oje stygoje.");
+    h += rootRows();
+  } else {
+    for (const F of B) {
+      const bString = (F.s2 === 1 && F.s1 === 2) || (st.iv === 12 && F.s2 <= 1);
+      const how = F.d === 0 ? "Antroji nata tame pačiame lade." : `Antroji nata ${F.d} ${F.d === 1 ? "ladu" : "ladais"} aukščiau.`;
+      h += row(pick(F.k, `${F.label} stygos`), F.d > 0 ? `+${F.d}` : `${F.d}`,
+        how + (bString ? " B styga suderinta kitaip, todėl vienu ladu daugiau." : ""));
+    }
+  }
+  $("jam").innerHTML = h;
 }
 function swatch(cls) {
   return `<svg class="sw" viewBox="0 0 34 28" aria-hidden="true"><g class="note ${cls}"><circle cx="17" cy="14" r="9.5"/></g></svg>`;
 }
 function drawLegend() {
-  const min = S.q === "min";
-  const items = [
-    ["n-root", "Root", "Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", true],
-    ["n-strong", "Stiprios", `${min ? "♭3 ir 5" : "3 ir 5"}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, true],
-    ["n-weak", "Silpnos", `${min ? "4 ir ♭7" : "2 ir 6"}: likusios pentatonikos natos. Gerai skamba einant per jas į stiprią natą.`, true],
-    ["n-gama", "Gamos natos", `${min ? "2 ir ♭6" : "4 ir 7"}: pilnos gamos priedai su daugiau įtampos. Naudok trumpai.${S.full ? "" : " Įjunk „Pilna gama“."}`, S.full],
-    ["n-blue", "Blue nata", `${min ? "♭5" : "♭3"}: bliuzo spalva. Slysk per ją, nesustok.${S.blue ? "" : " Įjunk „Blue nata“."}`, S.blue]
-  ];
+  const st = SET(), min = S.q === "min", map = degMap(), items = [];
+  const labs = c => [...map.values()].filter(d => d.c === c).map(d => d.l);
+  if (st.kind === "scale") {
+    items.push(["n-root", "Root", "Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", true]);
+    items.push(["n-strong", "Stiprios", `${min ? "♭3 ir 5" : "3 ir 5"}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, true]);
+    if (st.ch.length) {
+      const L = st.deg.filter(d => st.ch.includes(d[0])).map(d => d[1]);
+      items.push(["n-char", L.length > 1 ? "Būdingos" : "Būdinga", `${andJoin(L)}: ${L.length > 1 ? st.chTxt.replace("skiria", "jos skiria") : st.chTxt.replace("skiria", "ji skiria")}`, true]);
+    }
+    items.push(["n-weak", "Silpnos", `${andJoin(labs("weak"))}: likusios gamos natos. Gerai skamba einant per jas į stiprią natą.`, true]);
+    if (st.blue) items.push(["n-blue", "Blue nata", `${st.blue[1]}: bliuzo spalva. Slyskite per ją, nesustokite.${S.blue ? "" : " Įjunkite „Blue nata“."}`, S.blue]);
+  } else if (st.kind === "arp") {
+    items.push(["n-root", "Root", "Akordo pagrindas. Nuo jo patogiausia pradėti arpedžą.", true]);
+    items.push(["n-strong", "Stiprios", `${min ? "♭3 ir 5" : "3 ir 5"}: kitos akordo natos. Arpedžą sudaro tik jos.`, true]);
+  } else {
+    items.push(["n-root", "Root", st.iv === 12 ? "Abi poros natos: ta pati nata per oktavą. Grokite jas kartu, o tarpinę stygą prislopinkite." : "Apatinė poros nata.", true]);
+    if (st.iv === 7) items.push(["n-strong", "Kvinta", "5: viršutinė nata. Su Root sudaro power chord.", true]);
+    if (st.iv === 5) items.push(["n-strong", "Kvarta", "4: viršutinė nata. Ne akordo nata: skamba atvirai, kaip sus4, ir nori nueiti į 3.", true]);
+  }
   $("legend").innerHTML = items.map(([c, t, d, on]) => `<li class="${on ? "" : "off"}">${swatch(c)}<span><b>${t}.</b> ${d}</span></li>`).join("");
 }
-function drawTab() {
-  const k = S.group && S.box >= 0 ? S.box : 0;
-  const I = B[k].inst[0];
-  $("tabTitle").textContent = `${k + 1} forma`;
-  /* every note the fretboard shows inside this shape: pentatonic + scale extras + blue note when switched on */
-  const map = degMap();
-  let lo = 99, hi = -1;
-  const perString = I.strings.map(([a, b], s) => {
-    const cells = [];
+/* the notes of the shown form, low to high, as [string, fret] (pairs: [[s,f],[s,f]]) */
+function formNotes() {
+  const k = formSel() ? S.box : 0, F = B[k];
+  if (isPair()) return F.pairs.map(p => [[p.s1, p.f1], [p.s2, p.f2]]);
+  const I = F.inst[0], map = degMap(), out = [];
+  for (let s = 5; s >= 0; s--) {
+    const fr = I.strings[s];
     for (let f = Math.max(0, I.min - 1); f <= I.max + 1; f++) {
       const d = map.get(mod(OPEN[s] + f - S.root)); if (!d) continue;
-      const pent = d.c === "root" || d.c === "strong" || d.c === "weak";
-      const ok = pent ? (f === a || f === b) : (f >= a - 1 && f <= b + 1);
-      if (ok) { cells.push({ f, c: d.c }); lo = Math.min(lo, f); hi = Math.max(hi, f); }
+      const ok = d.c === "blue" ? fr.length && f >= fr[0] - 1 && f <= fr[fr.length - 1] + 1 : fr.includes(f);
+      if (ok) out.push([s, f, d.c]);
     }
-    return cells;
-  });
-  /* one column per fret, so the same fret lines up on every string */
-  const rows = perString.map((cells, s) => {
-    let line = `${SN[s]}|-`;
-    for (let f = lo; f <= hi; f++) {
-      const cell = cells.find(x => x.f === f);
-      if (!cell) { line += "----"; continue; }
-      const t = f + (cell.c === "root" ? "*" : "");
-      line += `<span class="t-${cell.c}">${t}</span>` + "-".repeat(4 - t.length);
-    }
-    return line + "|";
-  });
-  $("tabRange").textContent = `${lo}–${hi} ladai`;
+  }
+  return out;
+}
+function drawTab() {
+  const k = formSel() ? S.box : 0, F = B[k], map = degMap();
+  const cell = (s, f) => { const c = map.get(mod(OPEN[s] + f - S.root)).c, t = f + (c === "root" ? "*" : ""); return { t, c }; };
+  const span = ({ t, c }, w) => `<span class="t-${c}">${t}</span>` + "-".repeat(w - t.length);
+  let rows;
+  if (isPair()) {
+    $("tabTitle").textContent = `${F.label} stygos`;
+    $("tabRange").textContent = F.pairs.length ? `${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2} ladai` : "";
+    rows = SN.map((n, s) => {
+      let line = `${n}|-`;
+      for (const p of F.pairs) {
+        const f = p.s1 === s ? p.f1 : p.s2 === s ? p.f2 : null;
+        line += f == null ? "----" : span(cell(s, f), 4);
+      }
+      return line + "|";
+    });
+  } else {
+    /* one column per fret, so the same fret lines up on every string */
+    const notes = formNotes(), lo = Math.min(...notes.map(n => n[1])), hi = Math.max(...notes.map(n => n[1]));
+    $("tabTitle").textContent = `${k + 1} forma`;
+    $("tabRange").textContent = `${lo}–${hi} ladai`;
+    rows = SN.map((n, s) => {
+      let line = `${n}|-`;
+      for (let f = lo; f <= hi; f++) line += notes.some(x => x[0] === s && x[1] === f) ? span(cell(s, f), 4) : "----";
+      return line + "|";
+    });
+  }
   $("tab").innerHTML = rows.join("\n");
-  const key = `<b>*</b> Root (oranžinis), baltos stiprios, pilkos silpnos` + (S.full ? ", blankiausios gamos natos" : "") + (S.blue ? ", mėlynos blue nata" : "") + ".";
-  $("tabHelp").innerHTML = S.group && S.box >= 0 ? key : key + " Rodoma 1 forma, kitą pasirink po grifu.";
+  const st = SET(), map2 = new Set([...map.values()].map(d => d.c));
+  let key;
+  if (st.kind === "pair") key = "Kiekvienas stulpelis yra vienas dvigarsis: abi natas grokite kartu. <b>*</b> Root.";
+  else key = `<b>*</b> Root (oranžinis), baltos stiprios` + (map2.has("char") ? ", rožinės būdingos" : "") + (map2.has("weak") ? ", pilkos silpnos" : "") + (map2.has("blue") ? ", mėlynos blue nata" : "") + ".";
+  $("tabHelp").innerHTML = formSel() ? key : key + ` Rodoma ${st.kind === "pair" ? "pirmoji stygų pora" : "1 forma"}, kitą pasirinkite po grifu.`;
 }
 
 /* ---------- controls */
 function drawRoots() {
   $("roots").innerHTML = Array.from({ length: 12 }, (_, pc) =>
-    `<button data-pc="${pc}" aria-pressed="${pc === S.root}">${spell(pc, S.q, pc)}</button>`).join("");
+    `<button data-pc="${pc}" aria-pressed="${pc === S.root}">${rootName(pc, S.q)}</button>`).join("");
 }
 function setPressed(id, v) { for (const b of $(id).querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === v)); }
 function drawControls() {
+  const st = SET();
+  $("scaleSets").innerHTML = ORDER[S.q].map(id => `<button data-v="${id}" aria-pressed="${id === S.set}">${SETS[id].btn}</button>`).join("");
+  $("ivSets").innerHTML = ORDER.iv.map(id => `<button data-v="${id}" aria-pressed="${id === S.set}">${SETS[id].btn}</button>`).join("");
   setPressed("qSeg", S.q);
-  setPressed("scaleSeg", S.full ? "full" : "pent");
   setPressed("labSeg", S.labels);
   setPressed("toneSeg", S.tone);
+  $("blueSw").hidden = !st.blue;
   $("blueSw").setAttribute("aria-pressed", String(S.blue));
   $("groupSw").setAttribute("aria-pressed", String(S.group));
-  $("boxSeg").innerHTML = [["-1", "Visos"], ["0", "1"], ["1", "2"], ["2", "3"], ["3", "4"], ["4", "5"]]
+  $("boxSeg").innerHTML = [["-1", "Visos"], ...B.map(F => [String(F.k), F.label])]
     .map(([v, t]) => `<button data-v="${v}" aria-pressed="${String(+v === S.box)}">${t}</button>`).join("");
   $("boxSeg").classList.toggle("off", !S.group);
 }
 function drawHead() {
-  const q = S.q, r = S.root, third = q === "min" ? 3 : 4;
+  const st = SET(), r = S.root, q = S.q, map = degMap();
   $("chordName").textContent = chordName(r, q);
-  $("chordTones").textContent = [0, third, 7].map(i => spell(r, q, r + i)).join(" · ");
+  $("chordTones").textContent = chordNotes().join(" · ");
   $("miniName").textContent = chordName(r, q);
-  $("miniTones").textContent = [0, third, 7].map(i => spell(r, q, r + i)).join(" ");
-  $("scaleName").textContent = `${spell(r, q, r)} ${SCALES[q].word} ${S.full ? "gama" : "pentatonika"}: ` +
-    SCALES[q].deg.filter(d => S.full || d[2] !== "gama").map(d => spell(r, q, r + d[0])).join(" ");
-  $("footBox").textContent = S.group ? (S.box >= 0 ? `${S.box + 1} forma: ${boxRange(S.box)} ladai` : "visos 5 formos") : "be formų";
+  $("miniTones").textContent = chordNotes().join(" ");
+  let notes;
+  if (st.kind === "scale") notes = st.deg.map(([i, l]) => nameAt(r, q, i, degNum(l))).join(" ");
+  else if (st.kind === "arp") notes = chordNotes().join(" ");
+  else notes = st.iv === 12 ? `${rootName(r, q)} + ${rootName(r, q)}` : `${rootName(r, q)} + ${map.get(st.iv).name}`;
+  $("scaleName").textContent = st.kind === "pair" ? `${st.btn} nuo ${rootName(r, q)}: ${notes}` : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${st.name}: ${notes}`;
+  const F = formSel() ? B[S.box] : null;
+  $("footBox").textContent = !S.group ? "be formų" : F ? (st.kind === "pair" ? `${F.label} stygos` : `${S.box + 1} forma: ${boxRange(S.box)} ladai`)
+    : st.kind === "pair" ? "visos stygų poros" : `visos ${B.length} formos`;
 }
 
 function render(scrollToBox) {
-  B = boxes();
-  drawRoots(); drawControls(); drawHead(); drawBoard(); drawJam(); drawLegend(); drawTab();
-  if (scrollToBox && S.group && S.box >= 0) {
+  fixSet();
+  B = forms();
+  if (S.box >= B.length) S.box = -1;
+  drawRoots(); drawControls(); drawHead(); drawBoard(); drawAbout(); drawLegend(); drawTab();
+  if (scrollToBox && formSel() && !isPair()) {
     const I = B[S.box].inst[0], el = $("board");
     if (el.scrollWidth > el.clientWidth) {
       const cx = (nx(I.min) + nx(I.max)) / 2 / W * el.scrollWidth;
@@ -492,14 +740,16 @@ function render(scrollToBox) {
   save();
 }
 
-$("roots").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.root = +b.dataset.pc; render(true); });
-$("qSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.q = b.dataset.v; render(true); });
-$("scaleSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.full = b.dataset.v === "full"; render(); });
-$("labSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.labels = b.dataset.v; render(); });
-$("toneSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.tone = b.dataset.v; drawControls(); save(); if (audio()) strum(ac.currentTime + .02, 1); blink(); });
+const onBtn = (id, fn) => $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (b) fn(b); });
+onBtn("roots", b => { S.root = +b.dataset.pc; render(true); });
+onBtn("qSeg", b => { S.q = b.dataset.v; render(true); });
+onBtn("scaleSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
+onBtn("ivSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
+onBtn("labSeg", b => { S.labels = b.dataset.v; render(); });
+onBtn("toneSeg", b => { S.tone = b.dataset.v; drawControls(); save(); if (audio()) strum(ac.currentTime + .02, 1); blink(); });
 $("blueSw").addEventListener("click", () => { S.blue = !S.blue; render(); });
 $("groupSw").addEventListener("click", () => { S.group = !S.group; render(); });
-$("boxSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.box = +b.dataset.v; render(true); });
+onBtn("boxSeg", b => { S.box = +b.dataset.v; render(true); });
 $("jam").addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (!b) return; S.group = true; S.box = +b.dataset.pick; render(true); });
 $("fb").addEventListener("click", e => {
   const n = e.target.closest(".note");
@@ -681,6 +931,28 @@ function strum(t, vel) {
 let blinkT = 0;
 function blink() { const p = $("pilot"); p.classList.add("on"); clearTimeout(blinkT); blinkT = setTimeout(() => p.classList.remove("on"), 140); }
 $("strum").addEventListener("click", () => { if (!audio()) return; strum(ac.currentTime + .01, 1); blink(); });
+
+/* play the form shown in the tab: scales and arpeggios up and back down, interval pairs as double stops along the neck */
+let seqT = [];
+function flash(grp) {
+  for (const [s, f] of grp) { const n = $("fb").querySelector(`.note[data-s="${s}"][data-f="${f}"]`); if (n) { n.classList.remove("hit"); void n.getBBox(); n.classList.add("hit"); } }
+}
+$("playForm").addEventListener("click", () => {
+  if (!audio()) return;
+  seqT.forEach(clearTimeout); seqT = [];
+  const el = S.tone === "el", pair = isPair();
+  let ev, step;
+  if (pair) { ev = formNotes(); step = 520; }
+  else {
+    const up = formNotes().map(([s, f]) => [[s, f]]).sort((a, b) => (OPEN[a[0][0]] + a[0][1]) - (OPEN[b[0][0]] + b[0][1]));
+    ev = up.concat(up.slice(0, -1).reverse()); step = el ? 240 : 210;
+  }
+  ev.forEach((grp, i) => seqT.push(setTimeout(() => {
+    const t = ac.currentTime + .01;
+    grp.forEach(([s, f], j) => pluck(s, OPEN[s] + f, t + j * .014, el ? .7 : .9, false));
+    flash(grp); blink();
+  }, i * step)));
+});
 
 render(true);
 })();
