@@ -63,12 +63,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .top{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;
   padding:12px 14px;border-radius:10px;border:1px solid var(--line);
   background:repeating-linear-gradient(90deg,var(--grille-a) 0 3px,var(--grille-b) 3px 5px)}
-.brand{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:flex-start;gap:10px}
+.brand .pilot{margin-top:8px}
 .pilot{width:14px;height:14px;border-radius:50%;background:var(--accent);opacity:.35;flex:none;
   box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent);transition:opacity .08s linear}
 .pilot.on{opacity:1;box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent),0 0 10px var(--accent)}
 h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:0;line-height:1}
 .brand small{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.04em;display:block;margin-top:2px}
+.motto{max-width:440px;line-height:1.4;margin-top:5px!important}
+.motto i{font-style:normal;color:var(--ink);opacity:.75}
 .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);
   padding:9px 14px;border-radius:7px;font-weight:600;font-size:14px;white-space:nowrap}
@@ -212,7 +215,7 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
   <header class="top">
     <div class="brand">
       <span class="pilot" id="pilot" aria-hidden="true"></span>
-      <div><h1>Lempinio solo</h1><small>ką groti solo ant akordo</small></div>
+      <div><h1>Lempinio solo</h1><small class="motto" id="motto"></small></div>
     </div>
     <div class="readout" aria-live="polite">
       <h2 id="chordName">Am</h2>
@@ -1014,6 +1017,13 @@ $("playForm").addEventListener("click", () => {
     flash(grp); blink();
   }, i * step)));
 });
+
+/* header motto: one guitarist's line per visit */
+const MOTTOS = [
+  ["If you're always playing the correct notes, there's something wrong – you're not searching; you're not reaching for anything.", "Joe Satriani"],
+  ["The beautiful thing about learning is that nobody can take it away from you.", "B.B. King"]
+];
+{ const [t, a] = MOTTOS[Math.floor(Math.random() * MOTTOS.length)]; $("motto").innerHTML = `“${t}” <i>– ${a}</i>`; }
 
 render(true);
 })();
