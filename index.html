@@ -80,10 +80,12 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 /* chord panel */
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
 .label{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
-.chord-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
-.readout{display:flex;align-items:baseline;gap:12px;min-width:0;margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px 7px}
+.chord-head{display:flex;justify-content:flex-start;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.readout{display:flex;align-items:center;gap:12px;min-width:0;margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px 7px}
 .readout h2{font-family:var(--font-display);font-weight:800;font-size:44px;line-height:.9;margin:0;letter-spacing:.02em}
-.readout .tones{font-family:var(--font-mono);font-size:14px;font-weight:600}
+.readout .tones{display:flex;flex-direction:column;gap:3px;min-width:0}
+.readout .st{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.readout .sn{font-family:var(--font-mono);font-size:14px;font-weight:600;overflow-wrap:anywhere}
 .chord-head .scale{font-size:14px;color:var(--muted);align-self:center}
 .roots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}
 .roots button{border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:9px 0;
@@ -213,13 +215,12 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
     </div>
     <div class="readout" aria-live="polite">
       <h2 id="chordName">Am</h2>
-      <div class="tones" id="chordTones"></div>
+      <div class="tones"><span class="st" id="scaleTitle"></span><span class="sn" id="scaleNotes"></span></div>
     </div>
   </header>
 
   <section class="panel" aria-label="Akordas">
     <div class="chord-head">
-      <div class="scale" id="scaleName"></div>
       <div class="seg big" id="qSeg" role="group" aria-label="Akordo tipas">
         <button data-v="min">Minorinis</button><button data-v="maj">Mažorinis</button>
       </div>
@@ -304,7 +305,7 @@ const andJoin = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " i
 const MIN7 = [[0,"R"],[2,"2"],[3,"♭3"],[5,"4"],[7,"5"]];
 const MAJ5 = [[0,"R"],[2,"2"],[4,"3"],[5,"4"],[7,"5"]];
 const SETS = {
-  mpent: { q: "min", kind: "scale", btn: "Pentatonic", name: "minor pentatonic",
+  mpent: { q: "min", kind: "scale", btn: "Minor pentatonic", name: "minor pentatonic",
     deg: [[0,"R"],[3,"♭3"],[5,"4"],[7,"5"],[10,"♭7"]], blue: [6, "♭5"], ch: [],
     about: "Saugiausias pasirinkimas solo: rokas, bliuzas, popsas. Penkios natos, ir nė viena nesikerta su akordu.",
     cmp: "Natural minor be 2 ir ♭6.",
@@ -339,7 +340,7 @@ const SETS = {
     cmp: "Natural minor, tik 6 ir 7 pakeltos. Arba Major su ♭3.",
     chTxt: "skiria Melodic minor nuo Natural minor. Kylant gama skamba beveik kaip Major.",
     also: { iv: 0, q: "min", suf: "6", txt: c => `Taip pat tinka ant ${c.replace("6", "(maj7)")}: džiaze tai jo pagrindinė gama.` } },
-  Mpent: { q: "maj", kind: "scale", btn: "Pentatonic", name: "major pentatonic",
+  Mpent: { q: "maj", kind: "scale", btn: "Major pentatonic", name: "major pentatonic",
     deg: [[0,"R"],[2,"2"],[4,"3"],[7,"5"],[9,"6"]], blue: [3, "♭3"], ch: [],
     about: "Šviesi ir saugi: kantri, popsas, southern rokas.",
     cmp: "Major be 4 ir 7.",
@@ -712,14 +713,14 @@ function drawControls() {
 function drawHead() {
   const st = SET(), r = S.root, q = S.q, map = degMap();
   $("chordName").textContent = chordName(r, q);
-  $("chordTones").textContent = chordNotes().join(" · ");
   $("miniName").textContent = chordName(r, q);
   $("miniTones").textContent = chordNotes().join(" ");
   let notes;
   if (st.kind === "scale") notes = st.deg.map(([i, l]) => nameAt(r, q, i, degNum(l))).join(" ");
   else if (st.kind === "arp") notes = chordNotes().join(" ");
   else notes = st.iv === 12 ? `${rootName(r, q)} + ${rootName(r, q)}` : `${rootName(r, q)} + ${map.get(st.iv).name}`;
-  $("scaleName").textContent = st.kind === "pair" ? `${st.btn} nuo ${rootName(r, q)}: ${notes}` : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${st.name}: ${notes}`;
+  $("scaleTitle").textContent = st.kind === "pair" ? `${st.btn} nuo ${rootName(r, q)}` : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${st.name}`;
+  $("scaleNotes").textContent = notes;
   const F = formSel() ? B[S.box] : null;
   $("footBox").textContent = !S.group ? "be formų" : F ? (st.kind === "pair" ? `${F.label} stygos` : `${S.box + 1} forma: ${boxRange(S.box)} ladai`)
     : st.kind === "pair" ? "visos stygų poros" : `visos ${B.length} formos`;
