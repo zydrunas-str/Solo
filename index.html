@@ -146,10 +146,10 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .note.hit circle{animation:hit .45s ease-out}
 @keyframes hit{from{stroke:var(--accent);stroke-width:7}}
 
-/* scale and interval sets */
-.sets{display:flex;flex-wrap:wrap;gap:10px 24px;border-top:1px solid var(--line);padding-top:12px}
-.set-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.set-row .ctl-l{min-width:74px}
+/* scale and interval sets: one strip, a thin rule between the two groups */
+.sets{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+.sets .sep{width:1px;height:26px;background:var(--line)}
+@media (max-width:640px){.sets .sep{display:none}}
 .sets .seg button{font-size:13.5px;font-weight:600;padding:7px 11px}
 .about{margin:0;font-size:14px}
 .btn.ghost{background:transparent;color:var(--ink)}
@@ -227,8 +227,9 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
     </div>
     <div class="roots" id="roots" role="group" aria-label="Akordo Root nata"></div>
     <div class="sets">
-      <div class="set-row"><span class="ctl-l">Gamos</span><div class="seg" id="scaleSets" role="group" aria-label="Gamos"></div></div>
-      <div class="set-row"><span class="ctl-l">Intervalai</span><div class="seg" id="ivSets" role="group" aria-label="Intervalai"></div></div>
+      <div class="seg" id="scaleSets" role="group" aria-label="Gamos"></div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="seg" id="ivSets" role="group" aria-label="Intervalai"></div>
     </div>
   </section>
 
