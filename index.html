@@ -207,6 +207,13 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
 .tbox{display:flex;flex-direction:column;gap:8px;min-width:0}
 .tbox pre.tab{font-size:13px;padding:10px 12px}
 .label .cn{text-transform:none}
+.posnav{display:inline-flex;align-items:center;gap:2px}
+.posnav b{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ink);min-width:2.2ch;text-align:center}
+.posnav button{width:30px;height:30px;padding:0;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.posnav button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.posnav button:disabled{opacity:.3;cursor:default}
+.posnav button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.posnav svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 pre.tab .t-name{color:var(--screen-dim)}
 /* play / stop: a white icon inside the dark tab window */
 .tabwrap{position:relative}
@@ -291,7 +298,7 @@ pre.tab .t-name{color:var(--screen-dim)}
           </div>
         </div>
         <div class="tbox" id="chordBox">
-          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span><span id="chordPos"></span></div>
+          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span><span class="posnav" role="group" aria-label="Akordo pozicija"><button id="chordPrev" aria-label="Žemesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="chordPosN">5</b><button id="chordNext" aria-label="Aukštesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
           <div class="tabwrap">
             <pre class="tab" id="chordTab"></pre>
             <button class="play" id="playChord" data-lab="Groti akordą" aria-label="Groti akordą" title="Groti akordą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
@@ -817,17 +824,49 @@ function chordAt(lo, hi) {
   }
   return null;
 }
-let curChord = null;
+/* All positions of the chord along the neck: the same search in every 4-fret window, duplicates dropped, low to high. */
+const posOf = v => { const fr = v.filter(f => f != null && f > 0); return v.some(f => f === 0) && Math.max(...fr) <= 3 ? 0 : Math.min(...fr); };
+const chordCache = new Map();
+function chordList() {
+  const key = S.root + S.q;
+  if (chordCache.has(key)) return chordCache.get(key);
+  const seen = new Set(), list = [];
+  for (let lo = 0; lo + 3 <= MAXF; lo++) {
+    const v = chordAt(lo, lo + 3); if (!v) continue;
+    const k = v.join(","); if (seen.has(k)) continue;
+    seen.add(k);
+    /* a muted string in the middle is normal only for m7♭5, dim7 and aug grips */
+    const pl = v.map((f, i) => f == null ? -1 : i).filter(i => i >= 0);
+    if (pl[pl.length - 1] - pl[0] + 1 > pl.length && !["m7b5", "dim7", "aug"].includes(S.q)) continue;
+    list.push(v);
+  }
+  /* drop a grip that is just another one with fewer strings */
+  const sub = (a, b) => a !== b && a.every((f, i) => f == null || f === b[i]);
+  for (let i = list.length - 1; i >= 0; i--) if (list.some(w => sub(list[i], w))) list.splice(i, 1);
+  list.sort((a, b) => posOf(a) - posOf(b) || b.filter(f => f != null).length - a.filter(f => f != null).length);
+  chordCache.set(key, list); return list;
+}
+let curChord = null, chordL = [], chordI = 0;
+/* the form decides the starting chord; ‹ › then walk the other positions */
 function drawChord(lo, hi) {
   const box = $("chordBox");
-  if (isPair()) { box.hidden = true; return; }
+  if (isPair()) { box.hidden = true; curChord = null; return; }
   const v = chordAt(lo, hi);
-  curChord = v;
   box.hidden = !v;
-  if (!v) return;
+  if (!v) { curChord = null; return; }
+  chordL = chordList().slice();
+  chordI = chordL.findIndex(x => x.join(",") === v.join(","));
+  if (chordI < 0) { chordL.push(v); chordL.sort((a, b) => posOf(a) - posOf(b)); chordI = chordL.indexOf(v); }
+  showChord();
+}
+function showChord() {
+  const v = curChord = chordL[chordI];
   $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> akordas`;
-  const fr = v.filter(f => f != null && f > 0), open = v.some(f => f === 0);
-  $("chordPos").textContent = open && Math.min(...fr) <= 3 ? "atvira pozicija" : `${Math.min(...fr)} pozicija`;
+  const p = posOf(v);
+  $("chordPosN").textContent = p;
+  $("chordPosN").title = p === 0 ? "atvira pozicija" : `${p} pozicija`;
+  $("chordPrev").disabled = chordI === 0;
+  $("chordNext").disabled = chordI === chordL.length - 1;
   const names = new Map(CH[S.q].tones.map(([i, l, d]) => [i, nameAt(S.root, S.q, i, d || degNum(l))]));
   $("chordTab").innerHTML = SN.map((n, s) => {
     const f = v[s];
@@ -836,6 +875,8 @@ function drawChord(lo, hi) {
     return `${n}|-<span class="t-${iv === 0 ? "root" : "strong"}">${t}</span>${"-".repeat(4 - t.length)}| <span class="t-name">${names.get(iv)}</span>`;
   }).join("\n");
 }
+$("chordPrev").addEventListener("click", () => { if (chordI > 0) { stopSeq(); chordI--; showChord(); } });
+$("chordNext").addEventListener("click", () => { if (chordI < chordL.length - 1) { stopSeq(); chordI++; showChord(); } });
 
 /* ---------- controls */
 function drawRoots() {
