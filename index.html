@@ -133,7 +133,7 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .blab.b0 circle{stroke:var(--b1)}.blab.b0 text{fill:var(--b1)}.blab.b1 circle{stroke:var(--b2)}.blab.b1 text{fill:var(--b2)}
 .blab.b2 circle{stroke:var(--b3)}.blab.b2 text{fill:var(--b3)}.blab.b3 circle{stroke:var(--b4)}.blab.b3 text{fill:var(--b4)}
 .blab.b4 circle{stroke:var(--b5)}.blab.b4 text{fill:var(--b5)}
-.blab.sel circle{fill:var(--accent);stroke:var(--accent)}.blab.sel text{fill:var(--accent-ink)}
+.blab.sel circle{stroke-width:2.6}
 .note{cursor:pointer}
 .note circle{stroke-width:1.6}
 .note text{font:600 10.5px var(--font-mono);text-anchor:middle;pointer-events:none}
@@ -167,6 +167,8 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 
 /* cards */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:stretch}
+/* wide screens: the tab card gets more room so the form and the chord sit side by side */
+@media (min-width:1000px){.cards{grid-template-columns:1fr .8fr 1.6fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .jam{display:flex;flex-direction:column}
 .jrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
@@ -183,7 +185,8 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .legend li.off{opacity:.45}
 .legend b{color:var(--ink);font-weight:600}
 .sw{width:34px;height:28px;border-radius:6px;background:var(--screen);display:block}
-.tabhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tabhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px}
+.tabhead .label{margin-right:auto}
 .tabhead span{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
 pre.tab{margin:0;background:var(--screen);color:var(--screen-ink);border-radius:8px;padding:12px 14px;font:500 14px/1.45 var(--font-mono);overflow-x:auto}
 pre.tab .t-root{color:var(--accent);font-weight:600}
@@ -192,14 +195,24 @@ pre.tab .t-weak{color:var(--screen-dim)}
 pre.tab .t-gama{color:var(--screen-dim);opacity:.6}
 pre.tab .t-char{color:var(--n-char-ring);font-weight:600}
 pre.tab .t-blue{color:var(--n-blue-ring)}
-.mini{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px;margin-top:auto}
-.mini-chord{display:inline-flex;align-items:baseline;gap:8px;margin-right:auto}
-.mini-chord b{font-family:var(--font-display);font-weight:800;font-size:24px;line-height:1}
-.mini-chord span{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--muted)}
-.btn.play{width:44px;height:44px;padding:0;justify-content:center;border-radius:50%}
-.btn.play svg{width:18px;height:18px}
-.btn.play .i-stop,.btn.play.on .i-play{display:none}
-.btn.play.on .i-stop{display:block}
+.tabs{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.tbox{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 auto}
+.tbox.chordbox{flex:0 0 auto;width:min-content}
+.chordbox .label{white-space:nowrap}
+.cpos{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.tbox pre.tab{font-size:13px;padding:10px 12px}
+.label .cn{text-transform:none}
+pre.tab .t-name{color:var(--screen-dim)}
+/* play / stop: a white icon inside the dark tab window */
+.tabwrap{position:relative}
+.tabwrap pre.tab{padding-right:34px}
+.play{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;display:grid;place-items:center;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--screen-ink);cursor:pointer}
+.play:hover{border-color:var(--screen-dim)}
+.play:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.play svg{width:14px;height:14px;fill:currentColor}
+.play .i-stop,.play.on .i-play{display:none}
+.play.on .i-stop{display:block}
+.play.on{color:var(--accent)}
 .btn.sm{padding:6px 10px;font-size:13px;gap:6px}
 .btn.sm svg{width:13px;height:13px}
 @media (max-width:520px){h1{font-size:26px}.readout{gap:4px 12px}}
@@ -258,13 +271,23 @@ pre.tab .t-blue{color:var(--n-blue-ring)}
       <ul class="legend" id="legend"></ul>
     </section>
     <section class="card">
-      <div class="tabhead"><span class="label" id="tabTitle">1 forma</span><span id="tabRange"></span></div>
-      <pre class="tab" id="tab"></pre>
-      <p class="help" id="tabHelp"></p>
-      <div class="mini">
-        <span class="mini-chord"><b id="miniName">Am</b><span id="miniTones">A C E</span></span>
-        <button class="btn play" id="playForm" aria-label="Groti formą" title="Groti formą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+      <div class="tabs">
+        <div class="tbox">
+          <div class="tabhead">
+            <span class="label" id="tabTitle">1 forma</span><span id="tabRange"></span>
+          </div>
+          <div class="tabwrap">
+            <pre class="tab" id="tab"></pre>
+            <button class="play" id="playForm" aria-label="Groti formą" title="Groti formą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+          </div>
+        </div>
+        <div class="tbox chordbox" id="chordBox">
+          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span></div>
+          <pre class="tab" id="chordTab"></pre>
+          <span class="cpos" id="chordPos"></span>
+        </div>
       </div>
+      <p class="help" id="tabHelp" hidden></p>
     </section>
   </div>
 </div>
@@ -710,6 +733,7 @@ function drawTab() {
   let rows;
   if (isPair()) {
     $("tabTitle").textContent = `${F.label} stygos`;
+    drawChord(0, 0);
     $("tabRange").textContent = F.pairs.length ? `${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2} ladai` : "";
     rows = SN.map((n, s) => {
       let line = `${n}|-`;
@@ -724,6 +748,7 @@ function drawTab() {
     const notes = formNotes(), lo = Math.min(...notes.map(n => n[1])), hi = Math.max(...notes.map(n => n[1]));
     $("tabTitle").textContent = `${k + 1} forma`;
     $("tabRange").textContent = `${lo}–${hi} ladai`;
+    drawChord(lo, hi);
     rows = SN.map((n, s) => {
       let line = `${n}|-`;
       for (let f = lo; f <= hi; f++) line += notes.some(x => x[0] === s && x[1] === f) ? span(cell(s, f), 4) : "----";
@@ -731,11 +756,72 @@ function drawTab() {
     });
   }
   $("tab").innerHTML = rows.join("\n");
-  const st = SET(), map2 = new Set([...map.values()].map(d => d.c));
-  let key;
-  if (st.kind === "pair") key = "Kiekvienas stulpelis yra vienas dvigarsis: abi natas grokite kartu. <b>*</b> Root.";
-  else key = `<b>*</b> Root (oranžinis), baltos stiprios` + (map2.has("char") ? ", rožinės būdingos" : "") + (map2.has("weak") ? ", pilkos silpnos" : "") + (map2.has("blue") ? ", mėlynos blue nata" : "") + ".";
-  $("tabHelp").innerHTML = formSel() ? key : key + ` Rodoma ${st.kind === "pair" ? "pirmoji stygų pora" : "1 forma"}, kitą pasirinkite po grifu.`;
+  /* only the interval pairs need a word on how to read the tab */
+  const help = $("tabHelp");
+  help.hidden = !isPair();
+  if (isPair()) help.innerHTML = "Kiekvienas stulpelis yra vienas dvigarsis: abi natas grokite kartu. <b>*</b> Root.";
+}
+
+/* The chord in the form's position: every string gets a chord tone inside the form's frets or is muted.
+   Rules: Root in the bass, all chord tones (the 5 may drop out of a four-note chord), at least 4 strings,
+   at most one muted string in the middle, a 4-fret stretch, 4 fingers (a barre counts as one), open strings only up to fret 3.
+   Best = most strings. */
+function chordAt(lo, hi) {
+  const T = chordIvs(), r = S.root, need5 = T.length === 3 || !T.includes(7);
+  for (const w of [0, 1]) {
+    const a = Math.max(0, lo - w), b = Math.min(MAXF, hi + w), opts = [];
+    for (let s = 0; s < 6; s++) {
+      const o = [null];
+      for (let f = a; f <= b; f++) if (T.includes(mod(OPEN[s] + f - r))) o.push(f);
+      if (a > 0 && a <= 2 && T.includes(mod(OPEN[s] - r))) o.push(0);
+      opts.push(o);
+    }
+    let best = null, bestSc = -1e9;
+    const cur = [];
+    const walk = s => {
+      if (s < 0) {
+        const pl = []; for (let i = 5; i >= 0; i--) if (cur[i] != null) pl.push(i);
+        if (pl.length < 4) return;
+        if (mod(OPEN[pl[0]] + cur[pl[0]] - r) !== 0) return;
+        const inner = pl[0] - pl[pl.length - 1] + 1 - pl.length; if (inner > 1) return;
+        const pcs = new Set(pl.map(i => mod(OPEN[i] + cur[i] - r)));
+        const miss = T.filter(t => !pcs.has(t));
+        if (miss.length && (need5 || miss.length > 1 || miss[0] !== 7)) return;
+        const fr = pl.map(i => cur[i]).filter(f => f > 0);
+        const open = fr.length < pl.length;
+        const mn = fr.length ? Math.min(...fr) : 0, span = fr.length ? Math.max(...fr) - mn : 0;
+        if (span > 4) return;
+        if (open && fr.length && Math.max(...fr) > 3) return;          /* open strings only in a real open chord */
+        const atMin = fr.filter(f => f === mn).length;
+        const fingers = open ? fr.length : (atMin > 1 ? 1 : atMin) + fr.length - atMin;
+        if (fingers > 4) return;
+        const sc = pl.length * 3 - inner * 3 - span - (span > 3 ? 3 : 0) - (miss.length ? 2 : 0) + (pl[0] >= 4 ? 1 : 0);
+        if (sc > bestSc) { bestSc = sc; best = cur.slice(); }
+        return;
+      }
+      for (const f of opts[s]) { cur[s] = f; walk(s - 1); }
+    };
+    walk(5);
+    if (best) return best;
+  }
+  return null;
+}
+function drawChord(lo, hi) {
+  const box = $("chordBox");
+  if (isPair()) { box.hidden = true; return; }
+  const v = chordAt(lo, hi);
+  box.hidden = !v;
+  if (!v) return;
+  $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> akordas`;
+  const fr = v.filter(f => f != null && f > 0), open = v.some(f => f === 0);
+  $("chordPos").textContent = open && Math.min(...fr) <= 3 ? "atvira pozicija" : `${Math.min(...fr)} pozicija`;
+  const names = new Map(CH[S.q].tones.map(([i, l, d]) => [i, nameAt(S.root, S.q, i, d || degNum(l))]));
+  $("chordTab").innerHTML = SN.map((n, s) => {
+    const f = v[s];
+    if (f == null) return `${n}|-x---|`;
+    const iv = mod(OPEN[s] + f - S.root), t = f + (iv === 0 ? "*" : "");
+    return `${n}|-<span class="t-${iv === 0 ? "root" : "strong"}">${t}</span>${"-".repeat(4 - t.length)}| <span class="t-name">${names.get(iv)}</span>`;
+  }).join("\n");
 }
 
 /* ---------- controls */
@@ -760,8 +846,6 @@ function drawControls() {
 function drawHead() {
   const st = SET(), r = S.root, q = S.q, map = degMap();
   $("chordName").textContent = chordName(r, q);
-  $("miniName").textContent = chordName(r, q);
-  $("miniTones").textContent = chordNotes().join(" ");
   let notes;
   if (st.kind === "scale") notes = st.deg.map(([i, l, d]) => nameAt(r, q, i, d || degNum(l))).join(" ");
   else if (st.kind === "arp") notes = chordNotes().join(" ");
