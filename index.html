@@ -176,7 +176,7 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 /* cards */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:stretch}
 /* wide screens: the tab card gets more room so the form and the chord sit side by side */
-@media (min-width:1000px){.cards{grid-template-columns:1fr .8fr 1.6fr}}
+@media (min-width:1000px){.cards{grid-template-columns:1fr .8fr 1.2fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .jam{display:flex;flex-direction:column}
 .jrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
@@ -203,24 +203,23 @@ pre.tab .t-weak{color:var(--screen-dim)}
 pre.tab .t-gama{color:var(--screen-dim);opacity:.6}
 pre.tab .t-char{color:var(--n-char-ring);font-weight:600}
 pre.tab .t-blue{color:var(--n-blue-ring)}
-.tabs{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
-.tbox{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 auto}
-.tbox.chordbox{flex:0 0 auto;width:min-content}
-.chordbox .label{white-space:nowrap}
-.cpos{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.tabs{display:flex;flex-direction:column;gap:14px}
+.tbox{display:flex;flex-direction:column;gap:8px;min-width:0}
 .tbox pre.tab{font-size:13px;padding:10px 12px}
 .label .cn{text-transform:none}
 pre.tab .t-name{color:var(--screen-dim)}
 /* play / stop: a white icon inside the dark tab window */
 .tabwrap{position:relative}
-.tabwrap pre.tab{padding-right:34px}
-.play{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;display:grid;place-items:center;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--screen-ink);cursor:pointer}
-.play:hover{border-color:var(--screen-dim)}
-.play:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.play svg{width:14px;height:14px;fill:currentColor}
+.tabwrap pre.tab{padding-right:44px}
+.play{position:absolute;top:7px;right:7px;width:30px;height:30px;padding:0;display:grid;place-items:center;border-radius:50%;border:1.5px solid var(--screen-ink);background:transparent;color:var(--screen-ink);cursor:pointer}
+.play:hover{border-color:var(--accent);color:var(--accent)}
+.play:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.play svg{width:16px;height:16px}
+.play .spk,.play rect{fill:currentColor}
+.play .wave{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
 .play .i-stop,.play.on .i-play{display:none}
 .play.on .i-stop{display:block}
-.play.on{color:var(--accent)}
+.play.on{color:var(--accent);border-color:var(--accent)}
 .btn.sm{padding:6px 10px;font-size:13px;gap:6px}
 .btn.sm svg{width:13px;height:13px}
 @media (max-width:520px){h1{font-size:26px}.readout{gap:4px 12px}}
@@ -285,18 +284,18 @@ pre.tab .t-name{color:var(--screen-dim)}
     <section class="card">
       <div class="tabs">
         <div class="tbox">
-          <div class="tabhead">
-            <span class="label" id="tabTitle">1 forma</span><span id="tabRange"></span>
-          </div>
+          <div class="tabhead"><span class="label" id="tabTitle">1 forma</span><span id="tabRange"></span></div>
           <div class="tabwrap">
             <pre class="tab" id="tab"></pre>
-            <button class="play" id="playForm" aria-label="Groti formą" title="Groti formą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+            <button class="play" id="playForm" data-lab="Groti formą" aria-label="Groti formą" title="Groti formą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
           </div>
         </div>
-        <div class="tbox chordbox" id="chordBox">
-          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span></div>
-          <pre class="tab" id="chordTab"></pre>
-          <span class="cpos" id="chordPos"></span>
+        <div class="tbox" id="chordBox">
+          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span><span id="chordPos"></span></div>
+          <div class="tabwrap">
+            <pre class="tab" id="chordTab"></pre>
+            <button class="play" id="playChord" data-lab="Groti akordą" aria-label="Groti akordą" title="Groti akordą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
+          </div>
         </div>
       </div>
       <p class="help" id="tabHelp" hidden></p>
@@ -818,10 +817,12 @@ function chordAt(lo, hi) {
   }
   return null;
 }
+let curChord = null;
 function drawChord(lo, hi) {
   const box = $("chordBox");
   if (isPair()) { box.hidden = true; return; }
   const v = chordAt(lo, hi);
+  curChord = v;
   box.hidden = !v;
   if (!v) return;
   $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> akordas`;
@@ -870,7 +871,7 @@ function drawHead() {
 }
 
 function render(scrollToBox) {
-  if (seqT.length) stopForm();
+  if (seqT.length) stopSeq();
   fixSet();
   B = forms();
   if (S.box >= B.length) S.box = -1;
@@ -980,26 +981,44 @@ let seqT = [];
 function flash(grp) {
   for (const [s, f] of grp) { const n = $("fb").querySelector(`.note[data-s="${s}"][data-f="${f}"]`); if (n) { n.classList.remove("hit"); void n.getBBox(); n.classList.add("hit"); } }
 }
-function stopForm() {
+let seqBtn = null;
+function stopSeq() {
   seqT.forEach(clearTimeout); seqT = [];
-  $("playForm").classList.remove("on"); $("playForm").setAttribute("aria-label", "Groti formą"); $("playForm").title = "Groti formą";
+  if (seqBtn) { seqBtn.classList.remove("on"); seqBtn.setAttribute("aria-label", seqBtn.dataset.lab); seqBtn.title = seqBtn.dataset.lab; seqBtn = null; }
 }
-$("playForm").addEventListener("click", () => {
-  if (seqT.length) { stopForm(); return; }
-  if (!audio()) return;
-  let ev, step;
-  if (isPair()) { ev = formNotes(); step = 520; }
+/* ev: list of [[string, fret], ...] groups; gap: ms before each group (number or function of index) */
+function playSeq(btn, ev, gap, strumGap) {
+  const was = seqBtn === btn;
+  stopSeq();
+  if (was || !ev.length || !audio()) return;
+  seqBtn = btn; btn.classList.add("on"); btn.setAttribute("aria-label", "Sustabdyti"); btn.title = "Sustabdyti";
+  let at = 0;
+  ev.forEach((grp, i) => {
+    seqT.push(setTimeout(() => {
+      const t = ac.currentTime + .01;
+      grp.forEach(([s, f], j) => pluck(s, OPEN[s] + f, t + j * strumGap, grp.length > 2 ? .75 : .9));
+      flash(grp); blink();
+    }, at));
+    at += typeof gap === "function" ? gap(i) : gap;
+  });
+  seqT.push(setTimeout(stopSeq, at + 900));
+}
+/* form: up and back down the scale; interval pairs as double stops along the neck */
+$("playForm").addEventListener("click", e => {
+  let ev;
+  if (isPair()) ev = formNotes();
   else {
     const up = formNotes().map(([s, f]) => [[s, f]]).sort((a, b) => (OPEN[a[0][0]] + a[0][1]) - (OPEN[b[0][0]] + b[0][1]));
-    ev = up.concat(up.slice(0, -1).reverse()); step = 210;
+    ev = up.concat(up.slice(0, -1).reverse());
   }
-  $("playForm").classList.add("on"); $("playForm").setAttribute("aria-label", "Sustabdyti"); $("playForm").title = "Sustabdyti";
-  ev.forEach((grp, i) => seqT.push(setTimeout(() => {
-    const t = ac.currentTime + .01;
-    grp.forEach(([s, f], j) => pluck(s, OPEN[s] + f, t + j * .014, .9));
-    flash(grp); blink();
-  }, i * step)));
-  seqT.push(setTimeout(stopForm, ev.length * step + 300));
+  playSeq(e.currentTarget, ev, isPair() ? 520 : 210, .014);
+});
+/* chord: each note from the bass up, then the whole chord strummed */
+$("playChord").addEventListener("click", e => {
+  const v = curChord; if (!v) return;
+  const notes = []; for (let s = 5; s >= 0; s--) if (v[s] != null) notes.push([s, v[s]]);
+  const ev = notes.map(n => [n]).concat([notes]);
+  playSeq(e.currentTarget, ev, i => i === notes.length - 1 ? 650 : 330, .03);
 });
 
 /* fretboard scroll arrows: shown only on the side that has more neck to see */
