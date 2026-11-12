@@ -116,6 +116,9 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .seg button{border:1px solid var(--line);background:transparent;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:500;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .seg.big button{font-size:14px;padding:8px 14px;font-weight:600}
+/* chord type groups: a wider gap between groups than between buttons */
+#qSeg{gap:6px 18px}
+.qgrp{display:flex;flex-wrap:wrap;gap:4px}
 .seg.off{opacity:.4;pointer-events:none}
 
 /* fretboard screen */
@@ -371,8 +374,25 @@ const CH = {
   aug:  { btn: "aug", tip: "Padidintas trigarsis", tip_en: "Augmented triad",       suf: "aug",  fam: "maj", tones: [[0,"R"],[4,"3"],[8,"♯5"]] },
   sus4: { btn: "sus4", tip: "Kvarta vietoj tercijos", tip_en: "Fourth instead of the third",      suf: "sus4", fam: "maj", tones: [[0,"R"],[5,"4"],[7,"5"]] },
   /* 7alt is voiced as 7♯9; the ♯9 is spelled like a ♭3 (A7♯9: C, not B♯), the way guitarists read it */
+  d7s4: { btn: "7sus4", tip: "Septakordas su kvarta vietoj tercijos", tip_en: "Seventh chord with a fourth instead of the third", suf: "7sus4", fam: "maj", tones: [[0,"R"],[5,"4"],[7,"5"],[10,"♭7"]] },
+  six:  { btn: "6", tip: "Mažorinis su seksta", tip_en: "Major sixth", suf: "6", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[9,"6"]] },
+  m6:   { btn: "m6", tip: "Minorinis su seksta", tip_en: "Minor sixth", suf: "m6", fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[9,"6"]] },
+  add9: { btn: "add9", tip: "Mažorinis su nona, be septimos", tip_en: "Major with an added ninth, no seventh", suf: "add9", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[2,"9"]] },
+  maj9: { btn: "maj9", tip: "Didysis nonakordas", tip_en: "Major ninth", suf: "maj9", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[11,"7"],[2,"9"]] },
+  /* m11 and 13: guitarists leave out the 5 and the 9, so those are optional (opt) */
+  m11:  { btn: "m11", tip: "Minorinis undecimakordas", tip_en: "Minor eleventh", suf: "m11", fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[10,"♭7"],[2,"9"],[5,"11"]], opt: [7, 2] },
+  dom13: { btn: "13", tip: "Dominantinis tercdecimakordas", tip_en: "Dominant thirteenth", suf: "13", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[10,"♭7"],[2,"9"],[9,"13"]], opt: [7, 2] },
   alt:  { btn: "7alt", tip: "Altered dominantė, grojama kaip 7♯9", tip_en: "Altered dominant, played as 7♯9",      suf: "7alt", fam: "maj", tones: [[0,"R"],[4,"3"],[10,"♭7"],[3,"♯9",3]] }
 };
+/* chord type buttons in three groups, kept apart by a gap; the group name shows in the hover tip */
+const GROUPS = [
+  { lt: "Trigarsiai", en: "Triads", q: ["min", "maj", "sus4", "aug"] },
+  { lt: "Septakordai ir sekstakordai", en: "Sevenths and sixths", q: ["dom7", "maj7", "m7", "m7b5", "dim7", "d7s4", "six", "m6"] },
+  { lt: "Išplėstiniai akordai", en: "Extended chords", q: ["add9", "dom9", "maj9", "m9", "m11", "dom13", "alt"] }
+];
+/* a chord type with no own notes in a scale's ctx borrows a close relative's (13 reads like 9, 7sus4 like sus4) */
+const CTXALIAS = { dom13: "dom9", d7s4: "sus4" };
+const ctxOf = (o, q) => o.ctx && (o.ctx[q] || o.ctx[CTXALIAS[q]]);
 const fam = q => CH[q] ? CH[q].fam : q;
 const spellArr = (pc, q) => FLAT_KEYS[fam(q)].has(pc) ? FLAT : SHARP;
 const rootName = (pc, q) => spellArr(pc, q)[mod(pc)];
@@ -478,7 +498,9 @@ const SETS = {
     cmp_en: "Natural minor with the 6 and 7 raised. Or Major with a ♭3.",
     chTxt_en: "they set Melodic minor apart from Natural minor. Going up, the scale sounds almost like Major.",
     also: { iv: 0, q: "min", suf: "6", txt: c => `Taip pat tinka ant ${c.replace("6", "(maj7)")}: džiaze tai jo pagrindinė gama.`,
-      txt_en: c => `Also fits ${c.replace("6", "(maj7)")}: in jazz it is that chord’s main scale.` } },
+      txt_en: c => `Also fits ${c.replace("6", "(maj7)")}: in jazz it is that chord’s main scale.` },
+    ctx: { m6: { also: null, about: "Džiazo gama ant m6: jos 6 sutampa su akordu, o 7 suteikia džiazinį atspalvį.",
+      about_en: "The jazz scale over m6: its 6 matches the chord, and the 7 adds a jazzy edge." } } },
   Mpent: { q: "maj", kind: "scale", btn: "Major pentatonic", name: "major pentatonic",
     deg: [[0,"R"],[2,"2"],[4,"3"],[7,"5"],[9,"6"]], blue: [3, "♭3"], ch: [],
     about: "Šviesi ir saugi: kantri, popsas, southern rokas.",
@@ -582,10 +604,12 @@ const ORDER = {
   dom7: ["mix", "mpent", "Mpent", "lyddom"], dom9: ["mix", "Mpent", "mpent", "lyddom"],
   maj7: ["ion", "lyd", "Mpent"], m7: ["dor", "aeo", "phr", "mpent"], m9: ["dor", "aeo", "mpent"],
   m7b5: ["loc", "loc2"], dim7: ["dimwh"], aug: ["wt"], sus4: ["mix", "mpent", "ion"], alt: ["alt", "mpent"],
+  d7s4: ["mix", "mpent"], six: ["Mpent", "ion", "lyd"], m6: ["dor", "mel", "mpent"],
+  add9: ["ion", "Mpent", "lyd"], maj9: ["ion", "lyd", "Mpent"], m11: ["dor", "aeo", "mpent"], dom13: ["mix", "Mpent", "mpent", "lyddom"],
   iv: ["arp", "p5", "p4", "p8"]
 };
 const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
-const SET = () => { const st = SETS[S.set], o = st.ctx && st.ctx[S.q]; return o ? Object.assign({}, st, o) : st; };
+const SET = () => { const st = SETS[S.set], o = ctxOf(st, S.q); return o ? Object.assign({}, st, o) : st; };
 
 /* ---------- state */
 const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names" };
@@ -921,10 +945,12 @@ function drawTab() {
 
 /* The chord in the form's position: every string gets a chord tone inside the form's frets or is muted.
    Rules: Root in the bass, all chord tones (the 5 may drop out of a four-note chord), at least 4 strings,
-   at most one muted string in the middle, a 4-fret stretch, 4 fingers (a barre counts as one), open strings only up to fret 3.
+   at most one muted string in the middle, a 4-fret stretch, 4 fingers (a barre counts as one), open strings only up to fret 4.
    Best = most strings. */
 function chordAt(lo, hi) {
-  const T = chordIvs(), r = S.root, need5 = T.length === 3 || !T.includes(7);
+  const T = chordIvs(), r = S.root;
+  /* tones that may be left out: given per chord type, else the 5 of a chord with four or more notes */
+  const opt = CH[S.q].opt || (T.length > 3 && T.includes(7) ? [7] : []);
   for (const w of [0, 1]) {
     const a = Math.max(0, lo - w), b = Math.min(MAXF, hi + w), opts = [];
     for (let s = 0; s < 6; s++) {
@@ -943,12 +969,12 @@ function chordAt(lo, hi) {
         const inner = pl[0] - pl[pl.length - 1] + 1 - pl.length; if (inner > 1) return;
         const pcs = new Set(pl.map(i => mod(OPEN[i] + cur[i] - r)));
         const miss = T.filter(t => !pcs.has(t));
-        if (miss.length && (need5 || miss.length > 1 || miss[0] !== 7)) return;
+        if (miss.some(t => !opt.includes(t))) return;
         const fr = pl.map(i => cur[i]).filter(f => f > 0);
         const open = fr.length < pl.length;
         const mn = fr.length ? Math.min(...fr) : 0, span = fr.length ? Math.max(...fr) - mn : 0;
         if (span > 4) return;
-        if (open && fr.length && Math.max(...fr) > 3) return;          /* open strings only in a real open chord */
+        if (open && fr.length && Math.max(...fr) > 4) return;          /* open strings only in a real open chord (up to fret 4: x-0-2-4-2-0) */
         /* fingers: one per fretted note, but a barre (one finger flat over neighbouring strings on the same fret)
            saves the rest; strings under a barre may be higher, never lower, open or muted */
         let fingers = fr.length;
@@ -966,7 +992,7 @@ function chordAt(lo, hi) {
           fingers = Math.min(fingers, fr.length - best + 1);
         }
         if (fingers > 4) return;
-        const sc = pl.length * 3 - inner * 3 - span - (span > 3 ? 3 : 0) - (miss.length ? 2 : 0) + (pl[0] >= 4 ? 1 : 0);
+        const sc = pl.length * 3 - inner * 3 - span - (span > 3 ? 3 : 0) - miss.length * 2 + (pl[0] >= 4 ? 1 : 0);
         if (sc > bestSc) { bestSc = sc; best = cur.slice(); }
         return;
       }
@@ -978,7 +1004,7 @@ function chordAt(lo, hi) {
   return null;
 }
 /* All positions of the chord along the neck: the same search in every 4-fret window, duplicates dropped, low to high. */
-const posOf = v => { const fr = v.filter(f => f != null && f > 0); return v.some(f => f === 0) && Math.max(...fr) <= 3 ? 0 : Math.min(...fr); };
+const posOf = v => { const fr = v.filter(f => f != null && f > 0); return v.some(f => f === 0) && Math.max(...fr) <= 4 ? 0 : Math.min(...fr); };
 const chordCache = new Map();
 function chordList() {
   const key = S.root + S.q;
@@ -988,9 +1014,9 @@ function chordList() {
     const v = chordAt(lo, lo + 3); if (!v) continue;
     const k = v.join(","); if (seen.has(k)) continue;
     seen.add(k);
-    /* a muted string in the middle is normal only for m7♭5, dim7 and aug grips */
+    /* a muted string in the middle is normal only for m7♭5, dim7, aug, m11 and 13 grips */
     const pl = v.map((f, i) => f == null ? -1 : i).filter(i => i >= 0);
-    if (pl[pl.length - 1] - pl[0] + 1 > pl.length && !["m7b5", "dim7", "aug"].includes(S.q)) continue;
+    if (pl[pl.length - 1] - pl[0] + 1 > pl.length && !["m7b5", "dim7", "aug", "m11", "dom13"].includes(S.q)) continue;
     list.push(v);
   }
   /* drop a grip that is just another one with fewer strings */
@@ -1107,11 +1133,12 @@ function setPressed(id, v) { for (const b of $(id).querySelectorAll("button")) b
 function drawControls() {
   const st = SET();
   /* tooltip of a set: the first sentence of its description over the current chord */
-  const tipOf = id => { const o = SETS[id], c = o.ctx && o.ctx[S.q], a = c && tx(c, "about") ? tx(c, "about") : tx(o, "about"); return esc(a.split(/(?<=[.!?])\s/)[0]); };
+  const tipOf = id => { const o = SETS[id], c = ctxOf(o, S.q), a = c && tx(c, "about") ? tx(c, "about") : tx(o, "about"); return esc(a.split(/(?<=[.!?])\s/)[0]); };
   const setBtn = id => `<button data-v="${id}" aria-pressed="${id === S.set}" data-tip="${tipOf(id)}">${tx(SETS[id], "btn")}</button>`;
   $("scaleSets").innerHTML = ORDER[S.q].map(setBtn).join("");
   $("ivSets").innerHTML = ORDER.iv.map(setBtn).join("");
-  $("qSeg").innerHTML = Object.keys(CH).map(q => `<button data-v="${q}" aria-pressed="${q === S.q}" data-tip="${esc(tx(CH[q], "tip"))} · ${CH[q].tones.map(t => t[1]).join(" ")}">${CH[q].btn}</button>`).join("");
+  $("qSeg").innerHTML = GROUPS.map(g => `<span class="qgrp" role="group" aria-label="${esc(T(g.lt, g.en))}">` + g.q.map(q =>
+    `<button data-v="${q}" aria-pressed="${q === S.q}" data-tip="${esc(T(g.lt, g.en))} · ${esc(tx(CH[q], "tip"))} · ${CH[q].tones.map(t => t[1]).join(" ")}">${CH[q].btn}</button>`).join("") + "</span>").join("");
   setPressed("labSeg", S.labels);
   $("blueSw").hidden = !st.blue;
   $("blueSw").setAttribute("aria-pressed", String(S.blue));
