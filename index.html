@@ -108,6 +108,14 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .board{background:var(--screen);border-radius:10px;overflow-x:auto;overflow-y:hidden;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--screen-ink) 8%,transparent);-webkit-overflow-scrolling:touch}
 .board svg{display:block;width:100%;min-width:860px;height:auto;user-select:none;-webkit-user-select:none}
+/* scroll arrows over the fretboard edges when it does not fit: full height, fading into the screen */
+.boardwrap{position:relative}
+.bscroll{position:absolute;top:0;bottom:0;width:40px;border:0;padding:0;display:grid;place-items:center;cursor:pointer;color:var(--screen-ink);z-index:2}
+.bscroll.l{left:0;border-radius:10px 0 0 10px;background:linear-gradient(90deg,var(--screen) 35%,transparent)}
+.bscroll.r{right:0;border-radius:0 10px 10px 0;background:linear-gradient(270deg,var(--screen) 35%,transparent)}
+.bscroll svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.bscroll:hover svg{color:var(--accent)}
+.bscroll:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .board-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:0 4px;margin-top:-6px}
 .fb-wood{fill:color-mix(in srgb,var(--screen-ink) 4%,var(--screen))}
 .fret{stroke:var(--screen-line);stroke-width:2}
@@ -246,7 +254,11 @@ pre.tab .t-name{color:var(--screen-dim)}
     </div>
   </section>
 
-  <div class="board" id="board"><svg id="fb" viewBox="0 0 1000 248" aria-label="Gitaros grifas su solo natomis. Bakstelėk natą, kad išgirstum."></svg></div>
+  <div class="boardwrap">
+    <div class="board" id="board"><svg id="fb" viewBox="0 0 1000 248" aria-label="Gitaros grifas su solo natomis. Bakstelėk natą, kad išgirstum."></svg></div>
+    <button class="bscroll l" id="scrollL" aria-label="Slinkti grifą kairėn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="bscroll r" id="scrollR" aria-label="Slinkti grifą dešinėn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
   <div class="board-foot"><span>e viršuje, E apačioje · bakstelėk natą, kad išgirstum</span><span id="footBox"></span></div>
 
   <div class="controls">
@@ -989,6 +1001,22 @@ $("playForm").addEventListener("click", () => {
   }, i * step)));
   seqT.push(setTimeout(stopForm, ev.length * step + 300));
 });
+
+/* fretboard scroll arrows: shown only on the side that has more neck to see */
+{
+  const el = $("board"), L = $("scrollL"), Rb = $("scrollR");
+  const upd = () => {
+    const max = el.scrollWidth - el.clientWidth;
+    L.hidden = !(max > 2 && el.scrollLeft > 2);
+    Rb.hidden = !(max > 2 && el.scrollLeft < max - 2);
+  };
+  const go = dir => el.scrollBy({ left: dir * el.clientWidth * .6, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  L.addEventListener("click", () => go(-1));
+  Rb.addEventListener("click", () => go(1));
+  el.addEventListener("scroll", upd, { passive: true });
+  addEventListener("resize", upd);
+  setTimeout(upd, 0);
+}
 
 /* header motto: one guitarist's line per visit */
 const MOTTOS = [
