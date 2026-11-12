@@ -8,7 +8,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=Chivo+Mono:wght@500;600&display=swap">
 <style>
 /* Layout: Lempinis amp head — grille header, chord + scale/interval selector panel, the fretboard as the dark "screen", switches, then three cards: about the set, what the notes mean, the shape as tab. */
 :root{
@@ -39,6 +39,7 @@
   --n-char-ring:#f39ac4;
   --font-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
   --font-body:"Barlow","Segoe UI",Roboto,system-ui,sans-serif;
+  --font-narrow:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
   --font-mono:"Chivo Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -117,8 +118,13 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .seg.big button{font-size:14px;padding:8px 14px;font-weight:600}
 /* chord type groups: a wider gap between groups than between buttons */
-#qSeg{gap:6px 18px}
+#qSeg{gap:6px 14px}
 .qgrp{display:flex;flex-wrap:wrap;gap:4px}
+/* narrow type so all 19 chord types fit one row on desktop; there the buttons stretch to the row edges like the Root row */
+#qSeg button{font-family:var(--font-narrow);font-size:15px;padding:8px 8px;min-width:34px}
+@media (min-width:1000px){#qSeg{width:100%;flex-wrap:nowrap}.qgrp{flex:1 1 auto;flex-wrap:nowrap}.qgrp button{flex:1 1 auto}}
+/* phones: each group its own block of 4 columns */
+@media (max-width:640px){#qSeg{width:100%;gap:10px}.qgrp{flex:1 1 100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.qgrp button{min-width:0;padding:8px 2px}}
 .seg.off{opacity:.4;pointer-events:none}
 
 /* fretboard screen */
