@@ -60,7 +60,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* header */
-.top{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;
+.top{position:relative;display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;
   padding:12px 14px;border-radius:10px;border:1px solid var(--line);
   background:repeating-linear-gradient(90deg,var(--grille-a) 0 3px,var(--grille-b) 3px 5px)}
 .brand{display:flex;align-items:flex-start;gap:10px}
@@ -69,7 +69,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent);transition:opacity .08s linear}
 .pilot.on{opacity:1;box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent),0 0 10px var(--accent)}
 .titlerow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.lang{display:inline-flex;gap:4px}
+.lang{display:inline-flex;gap:4px;position:absolute;top:8px;right:10px;z-index:1}
 .lang button{width:30px;height:22px;padding:2px;border:1px solid var(--line);border-radius:5px;background:var(--panel);cursor:pointer;display:grid;place-items:center}
 .lang svg{width:24px;height:16px;display:block;border-radius:2px}
 .lang button[aria-pressed="false"] svg{opacity:.45;filter:saturate(.6)}
@@ -96,7 +96,7 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
 .label{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
 .chord-head{display:flex;justify-content:flex-start;align-items:flex-end;gap:14px;flex-wrap:wrap}
-.readout{display:flex;align-items:center;gap:12px;min-width:0;margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px 7px}
+.readout{display:flex;align-items:center;gap:12px;min-width:0;margin-left:auto;margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px 7px}
 .readout h2{font-family:var(--font-display);font-weight:800;font-size:44px;line-height:.9;margin:0;letter-spacing:.02em}
 .readout .tones{display:flex;flex-direction:column;gap:3px;min-width:0}
 .readout .st{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.02em}
@@ -264,13 +264,13 @@ pre.tab .t-name{color:var(--screen-dim)}
 <body>
 <div class="wrap">
   <header class="top">
+    <div class="lang" id="langSeg" role="group" aria-label="Kalba">
+      <button data-lang="lt" aria-pressed="true" aria-label="Lietuviškai" data-tip="Lietuviškai"><svg viewBox="0 0 30 18" aria-hidden="true"><rect width="30" height="6" fill="#FDB913"/><rect y="6" width="30" height="6" fill="#006A44"/><rect y="12" width="30" height="6" fill="#C1272D"/></svg></button>
+      <button data-lang="en" aria-pressed="false" aria-label="English" data-tip="English"><svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="ukS"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="ukT"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#ukS)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#ukT)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg></button>
+    </div>
     <div class="brand">
       <span class="pilot" id="pilot" aria-hidden="true"></span>
-      <div><div class="titlerow"><h1>Lempinio solo</h1>
-        <div class="lang" id="langSeg" role="group" aria-label="Kalba">
-          <button data-lang="lt" aria-pressed="true" aria-label="Lietuviškai" data-tip="Lietuviškai"><svg viewBox="0 0 30 18" aria-hidden="true"><rect width="30" height="6" fill="#FDB913"/><rect y="6" width="30" height="6" fill="#006A44"/><rect y="12" width="30" height="6" fill="#C1272D"/></svg></button>
-          <button data-lang="en" aria-pressed="false" aria-label="English" data-tip="English"><svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="ukS"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="ukT"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#ukS)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#ukT)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg></button>
-        </div></div><small class="motto" id="motto"></small></div>
+      <div><div class="titlerow"><h1>Lempinio solo</h1></div><small class="motto" id="motto"></small></div>
     </div>
     <div class="readout" aria-live="polite">
       <h2 id="chordName">Am</h2>
