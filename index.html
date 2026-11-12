@@ -228,6 +228,16 @@ pre.tab .t-name{color:var(--screen-dim)}
 .play .i-stop,.play.on .i-play{display:none}
 .play.on .i-stop{display:block}
 .play.on{color:var(--accent);border-color:var(--accent)}
+.eye{position:absolute;bottom:7px;right:7px;width:30px;height:30px;padding:0;display:grid;place-items:center;border-radius:50%;border:1.5px solid var(--screen-ink);background:transparent;color:var(--screen-ink);cursor:pointer}
+.eye svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.eye:hover{border-color:var(--accent);color:var(--accent)}
+.eye:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eye[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* chord shown on the fretboard: everything else steps back, the grip gets a ring */
+#fb.chordview .note:not(.cv),#fb.chordview .box,#fb.chordview .blab,#fb.chordview .pair{opacity:.16}
+#fb .note circle.cv-ring{fill:none;stroke:var(--accent);stroke-width:2.2}
+.cv-xbg{fill:var(--screen)}
+.cv-x{font:700 14px var(--font-mono);fill:var(--accent);text-anchor:middle}
 .btn.sm{padding:6px 10px;font-size:13px;gap:6px}
 .btn.sm svg{width:13px;height:13px}
 @media (max-width:520px){h1{font-size:26px}.readout{gap:4px 12px}}
@@ -302,6 +312,7 @@ pre.tab .t-name{color:var(--screen-dim)}
           <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span><span class="posnav" role="group" aria-label="Akordo pozicija"><button id="chordPrev" aria-label="Žemesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="chordPosN">5</b><button id="chordNext" aria-label="Aukštesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
           <div class="tabwrap">
             <pre class="tab" id="chordTab"></pre>
+            <button class="eye" id="chordEye" aria-pressed="false" aria-label="Rodyti akordą grife" title="Rodyti akordą grife"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
             <button class="play" id="playChord" data-lab="Groti akordą" aria-label="Groti akordą" title="Groti akordą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
           </div>
         </div>
@@ -852,10 +863,24 @@ let curChord = null, chordL = [], chordI = 0;
 /* the form decides the starting chord; ‹ › then walk the other positions */
 function drawChord(lo, hi) {
   const box = $("chordBox");
-  if (isPair()) { box.hidden = true; curChord = null; return; }
+  if (isPair()) {
+    /* interval pairs have no fret window: start on the grip whose bass is on the pair's lower string */
+    chordL = chordList().slice();
+    box.hidden = !chordL.length;
+    if (!chordL.length) { curChord = null; drawChordOverlay(); return; }
+    /* fullest grip with its bass on that string (or the nearest lower string), lowest position first */
+    const low = B[formSel() ? S.box : 0].s1, bass = v => Math.max(...v.map((f, i) => f == null ? -1 : i));
+    const n = v => v.filter(f => f != null).length;
+    chordI = 0;
+    for (let t = low; t <= 5; t++) {
+      const c = chordL.map((v, i) => [v, i]).filter(([v]) => bass(v) === t && posOf(v) > 0);
+      if (c.length) { chordI = c.reduce((a, b) => n(b[0]) > n(a[0]) ? b : a)[1]; break; }
+    }
+    showChord(); return;
+  }
   const v = chordAt(lo, hi);
   box.hidden = !v;
-  if (!v) { curChord = null; return; }
+  if (!v) { curChord = null; drawChordOverlay(); return; }
   chordL = chordList().slice();
   chordI = chordL.findIndex(x => x.join(",") === v.join(","));
   if (chordI < 0) { chordL.push(v); chordL.sort((a, b) => posOf(a) - posOf(b)); chordI = chordL.indexOf(v); }
@@ -869,6 +894,7 @@ function showChord() {
   $("chordPosN").title = p === 0 ? "atvira pozicija" : `${p} pozicija`;
   $("chordPrev").disabled = chordI === 0;
   $("chordNext").disabled = chordI === chordL.length - 1;
+  drawChordOverlay(chordView);
   const names = new Map(CH[S.q].tones.map(([i, l, d]) => [i, nameAt(S.root, S.q, i, d || degNum(l))]));
   $("chordTab").innerHTML = SN.map((n, s) => {
     const f = v[s];
@@ -877,6 +903,36 @@ function showChord() {
     return `${n}|-<span class="t-${iv === 0 ? "root" : "strong"}">${t}</span>${"-".repeat(4 - t.length)}| <span class="t-name">${names.get(iv)}</span>`;
   }).join("\n");
 }
+/* the chosen grip on the fretboard: own note circles on top (a chord tone may be outside the scale), × for muted strings */
+let chordView = false;
+function drawChordOverlay(scroll) {
+  const fb = $("fb"), old = fb.querySelector("#chordOv"); if (old) old.remove();
+  const v = curChord, on = chordView && v && !$("chordBox").hidden;
+  fb.classList.toggle("chordview", !!on);
+  if (!on) return;
+  const labs = new Map(CH[S.q].tones.map(([i, l, d]) => [i, { l, name: nameAt(S.root, S.q, i, d || degNum(l)) }]));
+  const o = [];
+  for (let s = 0; s < 6; s++) {
+    const f = v[s];
+    if (f == null) { o.push(`<circle class="cv-xbg" cx="14" cy="${sy(s)}" r="9"/><text class="cv-x" x="14" y="${sy(s)}" dy=".36em">×</text>`); continue; }
+    const iv = mod(OPEN[s] + f - S.root), d = labs.get(iv), x = nx(f).toFixed(1), lab = S.labels === "ints" ? d.l : d.name;
+    o.push(`<g class="note cv n-${iv === 0 ? "root" : "strong"}" data-s="${s}" data-f="${f}"><circle cx="${x}" cy="${sy(s)}" r="${iv === 0 ? R + 1 : R}"/><text x="${x}" y="${sy(s)}" dy=".36em"${lab.length > 2 ? ' class="sm"' : ""}>${lab}</text><circle class="cv-ring" cx="${x}" cy="${sy(s)}" r="${R + 4.5}"/></g>`);
+  }
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.id = "chordOv"; g.innerHTML = o.join(""); fb.appendChild(g);
+  const el = $("board");
+  if (scroll && el.scrollWidth > el.clientWidth) {
+    const fr = v.filter(f => f != null), cx = (nx(Math.min(...fr)) + nx(Math.max(...fr))) / 2 / W * el.scrollWidth;
+    el.scrollTo({ left: cx - el.clientWidth / 2, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+}
+$("chordEye").addEventListener("click", () => {
+  chordView = !chordView;
+  $("chordEye").setAttribute("aria-pressed", String(chordView));
+  $("chordEye").setAttribute("aria-label", chordView ? "Slėpti akordą grife" : "Rodyti akordą grife");
+  $("chordEye").title = $("chordEye").getAttribute("aria-label");
+  drawChordOverlay(true);
+});
 $("chordPrev").addEventListener("click", () => { if (chordI > 0) { stopSeq(); chordI--; showChord(); } });
 $("chordNext").addEventListener("click", () => { if (chordI < chordL.length - 1) { stopSeq(); chordI++; showChord(); } });
 
