@@ -68,6 +68,17 @@ button{font:inherit;color:inherit;cursor:pointer}
 .pilot{width:14px;height:14px;border-radius:50%;background:var(--accent);opacity:.35;flex:none;
   box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent);transition:opacity .08s linear}
 .pilot.on{opacity:1;box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 25%,transparent),0 0 10px var(--accent)}
+.titlerow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lang{display:inline-flex;gap:4px}
+.lang button{width:30px;height:22px;padding:2px;border:1px solid var(--line);border-radius:5px;background:var(--panel);cursor:pointer;display:grid;place-items:center}
+.lang svg{width:24px;height:16px;display:block;border-radius:2px}
+.lang button[aria-pressed="false"] svg{opacity:.45;filter:saturate(.6)}
+.lang button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.lang button:hover svg{opacity:1;filter:none}
+.lang button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* hover tips: one bubble for the whole page, shown after a short pause */
+#tip{position:fixed;left:0;top:0;z-index:60;max-width:min(280px,calc(100vw - 16px));padding:6px 9px;border-radius:6px;background:var(--ink);color:var(--bg);font:500 12.5px/1.35 var(--font-body);box-shadow:0 4px 14px rgb(0 0 0 / .25);pointer-events:none;opacity:0;transition:opacity .12s}
+#tip.on{opacity:1}
 h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:0;line-height:1}
 .brand small{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.04em;display:block;margin-top:2px}
 .motto{max-width:440px;line-height:1.4;margin-top:5px!important}
@@ -255,7 +266,11 @@ pre.tab .t-name{color:var(--screen-dim)}
   <header class="top">
     <div class="brand">
       <span class="pilot" id="pilot" aria-hidden="true"></span>
-      <div><h1>Lempinio solo</h1><small class="motto" id="motto"></small></div>
+      <div><div class="titlerow"><h1>Lempinio solo</h1>
+        <div class="lang" id="langSeg" role="group" aria-label="Kalba">
+          <button data-lang="lt" aria-pressed="true" aria-label="Lietuviškai" data-tip="Lietuviškai"><svg viewBox="0 0 30 18" aria-hidden="true"><rect width="30" height="6" fill="#FDB913"/><rect y="6" width="30" height="6" fill="#006A44"/><rect y="12" width="30" height="6" fill="#C1272D"/></svg></button>
+          <button data-lang="en" aria-pressed="false" aria-label="English" data-tip="English"><svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="ukS"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="ukT"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#ukS)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#ukT)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg></button>
+        </div></div><small class="motto" id="motto"></small></div>
     </div>
     <div class="readout" aria-live="polite">
       <h2 id="chordName">Am</h2>
@@ -263,7 +278,7 @@ pre.tab .t-name{color:var(--screen-dim)}
     </div>
   </header>
 
-  <section class="panel" aria-label="Akordas">
+  <section class="panel" id="chordPanel" aria-label="Akordas">
     <div class="chord-head">
       <div class="seg big" id="qSeg" role="group" aria-label="Akordo tipas">
       </div>
@@ -281,16 +296,16 @@ pre.tab .t-name{color:var(--screen-dim)}
     <button class="bscroll l" id="scrollL" aria-label="Slinkti grifą kairėn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button class="bscroll r" id="scrollR" aria-label="Slinkti grifą dešinėn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
   </div>
-  <div class="board-foot"><span>e viršuje, E apačioje · bakstelėk natą, kad išgirstum</span><span id="footBox"></span></div>
+  <div class="board-foot"><span id="footHint">e viršuje, E apačioje · bakstelėk natą, kad išgirstum</span><span id="footBox"></span></div>
 
   <div class="controls">
-    <button class="switch" id="blueSw" aria-pressed="false"><i></i>Blue nata</button>
+    <button class="switch" id="blueSw" aria-pressed="false"><i></i><span id="blueTxt">Blue nata</span></button>
     <div class="ctl">
-      <button class="switch" id="groupSw" aria-pressed="true"><i></i>Formos</button>
+      <button class="switch" id="groupSw" aria-pressed="true"><i></i><span id="groupTxt">Formos</span></button>
       <div class="seg" id="boxSeg"></div>
     </div>
-    <div class="ctl"><span class="ctl-l">Žymės</span>
-      <div class="seg" id="labSeg"><button data-v="names">Natos</button><button data-v="ints">Intervalai</button></div>
+    <div class="ctl"><span class="ctl-l" id="labL">Žymės</span>
+      <div class="seg" id="labSeg"><button data-v="names" id="labNames">Natos</button><button data-v="ints" id="labInts">Intervalai</button></div>
     </div>
   </div>
 
@@ -301,25 +316,25 @@ pre.tab .t-name{color:var(--screen-dim)}
       <div class="jam" id="jam"></div>
     </section>
     <section class="card">
-      <span class="label">Natų reikšmė</span>
+      <span class="label" id="legendTitle">Natų reikšmė</span>
       <ul class="legend" id="legend"></ul>
     </section>
     <section class="card">
       <div class="tabs">
         <div class="tbox">
-          <div class="tabhead"><span class="label" id="tabTitle">Forma</span><span class="rng" id="tabRange"></span><span class="posnav" role="group" aria-label="Forma"><button id="formPrev" aria-label="Ankstesnė forma"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="formN">1</b><button id="formNext" aria-label="Kita forma"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
+          <div class="tabhead"><span class="label" id="tabTitle">Forma</span><span class="rng" id="tabRange"></span><span class="posnav" id="formNav" role="group" aria-label="Forma"><button id="formPrev" aria-label="Ankstesnė forma"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="formN">1</b><button id="formNext" aria-label="Kita forma"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
           <div class="tabwrap">
             <pre class="tab" id="tab"></pre>
-            <button class="eye" id="formEye" aria-pressed="false" aria-label="Rodyti visas formas" title="Rodyti visas formas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
-            <button class="play" id="playForm" data-lab="Groti formą" aria-label="Groti formą" title="Groti formą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
+            <button class="eye" id="formEye" aria-pressed="false" aria-label="Rodyti visas formas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <button class="play" id="playForm" data-lab="Groti formą" aria-label="Groti formą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
           </div>
         </div>
         <div class="tbox" id="chordBox">
-          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span><span class="posnav" role="group" aria-label="Akordo pozicija"><button id="chordPrev" aria-label="Žemesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="chordPosN">5</b><button id="chordNext" aria-label="Aukštesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
+          <div class="tabhead"><span class="label" id="chordTitle">Am akordas</span><span class="posnav" id="chordNav" role="group" aria-label="Akordo pozicija"><button id="chordPrev" aria-label="Žemesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="chordPosN">5</b><button id="chordNext" aria-label="Aukštesnė pozicija"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
           <div class="tabwrap">
             <pre class="tab" id="chordTab"></pre>
-            <button class="eye" id="chordEye" aria-pressed="false" aria-label="Rodyti akordą grife" title="Rodyti akordą grife"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
-            <button class="play" id="playChord" data-lab="Groti akordą" aria-label="Groti akordą" title="Groti akordą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
+            <button class="eye" id="chordEye" aria-pressed="false" aria-label="Rodyti akordą grife"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <button class="play" id="playChord" data-lab="Groti akordą" aria-label="Groti akordą"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
           </div>
         </div>
       </div>
@@ -344,19 +359,19 @@ const FLAT  = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
 const FLAT_KEYS = { maj: new Set([1,3,5,8,10]), min: new Set([0,2,3,5,7,10]) };
 /* Chord types. fam: which key signature spells the root (minor-like or major-like); tones: [interval, label, letter degree]. */
 const CH = {
-  min:  { btn: "Minor",     suf: "m",    fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"]] },
-  maj:  { btn: "Major",     suf: "",     fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"]] },
-  dom7: { btn: "7",         suf: "7",    fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[10,"♭7"]] },
-  dom9: { btn: "9",         suf: "9",    fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[10,"♭7"],[2,"9"]] },
-  maj7: { btn: "maj7",      suf: "maj7", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[11,"7"]] },
-  m7:   { btn: "m7",        suf: "m7",   fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[10,"♭7"]] },
-  m9:   { btn: "m9",        suf: "m9",   fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[10,"♭7"],[2,"9"]] },
-  m7b5: { btn: "m7♭5",      suf: "m7♭5", fam: "min", tones: [[0,"R"],[3,"♭3"],[6,"♭5"],[10,"♭7"]] },
-  dim7: { btn: "dim7",      suf: "dim7", fam: "min", tones: [[0,"R"],[3,"♭3"],[6,"♭5"],[9,"𝄫7",6]] },
-  aug:  { btn: "aug",       suf: "aug",  fam: "maj", tones: [[0,"R"],[4,"3"],[8,"♯5"]] },
-  sus4: { btn: "sus4",      suf: "sus4", fam: "maj", tones: [[0,"R"],[5,"4"],[7,"5"]] },
+  min:  { btn: "Minor", tip: "Minorinis trigarsis", tip_en: "Minor triad",     suf: "m",    fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"]] },
+  maj:  { btn: "Major", tip: "Mažorinis trigarsis", tip_en: "Major triad",     suf: "",     fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"]] },
+  dom7: { btn: "7", tip: "Dominantinis septakordas", tip_en: "Dominant seventh",         suf: "7",    fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[10,"♭7"]] },
+  dom9: { btn: "9", tip: "Dominantinis nonakordas", tip_en: "Dominant ninth",         suf: "9",    fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[10,"♭7"],[2,"9"]] },
+  maj7: { btn: "maj7", tip: "Didysis septakordas", tip_en: "Major seventh",      suf: "maj7", fam: "maj", tones: [[0,"R"],[4,"3"],[7,"5"],[11,"7"]] },
+  m7:   { btn: "m7", tip: "Minorinis septakordas", tip_en: "Minor seventh",        suf: "m7",   fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[10,"♭7"]] },
+  m9:   { btn: "m9", tip: "Minorinis nonakordas", tip_en: "Minor ninth",        suf: "m9",   fam: "min", tones: [[0,"R"],[3,"♭3"],[7,"5"],[10,"♭7"],[2,"9"]] },
+  m7b5: { btn: "m7♭5", tip: "Pusiau sumažintas septakordas", tip_en: "Half-diminished seventh",      suf: "m7♭5", fam: "min", tones: [[0,"R"],[3,"♭3"],[6,"♭5"],[10,"♭7"]] },
+  dim7: { btn: "dim7", tip: "Sumažintas septakordas", tip_en: "Diminished seventh",      suf: "dim7", fam: "min", tones: [[0,"R"],[3,"♭3"],[6,"♭5"],[9,"𝄫7",6]] },
+  aug:  { btn: "aug", tip: "Padidintas trigarsis", tip_en: "Augmented triad",       suf: "aug",  fam: "maj", tones: [[0,"R"],[4,"3"],[8,"♯5"]] },
+  sus4: { btn: "sus4", tip: "Kvarta vietoj tercijos", tip_en: "Fourth instead of the third",      suf: "sus4", fam: "maj", tones: [[0,"R"],[5,"4"],[7,"5"]] },
   /* 7alt is voiced as 7♯9; the ♯9 is spelled like a ♭3 (A7♯9: C, not B♯), the way guitarists read it */
-  alt:  { btn: "7alt",      suf: "7alt", fam: "maj", tones: [[0,"R"],[4,"3"],[10,"♭7"],[3,"♯9",3]] }
+  alt:  { btn: "7alt", tip: "Altered dominantė, grojama kaip 7♯9", tip_en: "Altered dominant, played as 7♯9",      suf: "7alt", fam: "maj", tones: [[0,"R"],[4,"3"],[10,"♭7"],[3,"♯9",3]] }
 };
 const fam = q => CH[q] ? CH[q].fam : q;
 const spellArr = (pc, q) => FLAT_KEYS[fam(q)].has(pc) ? FLAT : SHARP;
@@ -372,7 +387,18 @@ function nameAt(r, q, iv, deg) {
   return LET[li] + (ACC[d] ?? "");
 }
 const degNum = l => l === "R" ? 1 : +l.replace(/[^0-9]/g, "");
-const andJoin = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " ir " + a[a.length - 1];
+/* ---------- language: Lithuanian as written, English alongside (field_en in the data, T(lt, en) in the code) */
+let LANG = "lt";
+try {
+  const q = new URLSearchParams(location.search).get("lang"), saved = localStorage.getItem("lempinio-solo-lang");
+  LANG = q === "en" || q === "lt" ? q : saved === "en" || saved === "lt" ? saved : (navigator.language || "").toLowerCase().startsWith("lt") ? "lt" : "en";
+} catch (e) {}
+const T = (lt, en) => LANG === "en" ? en : lt;
+const tx = (o, k) => LANG === "en" && o[k + "_en"] != null ? o[k + "_en"] : o[k];
+const esc = t => String(t).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+/* icon buttons: the same words for screen readers and for the hover tip */
+const setLab = (el, t) => { el.setAttribute("aria-label", t); el.dataset.tip = t; el.removeAttribute("title"); };
+const andJoin = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + T(" ir ", " and ") + a[a.length - 1];
 
 /* Sets. q: which chord they belong to ("*" = both). ch: characteristic notes (what makes the scale sound like itself).
    same: interval and quality of the scale with the same notes; cmp: how it differs from the plain minor/major. */
@@ -383,112 +409,172 @@ const SETS = {
     deg: [[0,"R"],[3,"♭3"],[5,"4"],[7,"5"],[10,"♭7"]], blue: [6, "♭5"], ch: [],
     ctx: { dom7: { ch: [3], about: "Bliuzo garsas: minorinė pentatonika ant mažorinio septakordo. Rokas ir bliuzas be jos neapsieina.",
       cmp: "♭3 kertasi su akordo 3, todėl jos nelaikykite: stumkite (bend) arba slyskite į 3.",
-      chTxt: "ji kertasi su akordo 3. Būtent ši trintis ir yra bliuzas." },
+      chTxt: "ji kertasi su akordo 3. Būtent ši trintis ir yra bliuzas.",
+      about_en: "The blues sound: minor pentatonic over a dominant seventh chord. Rock and blues can’t live without it.",
+      cmp_en: "The ♭3 clashes with the chord’s 3, so don’t hold it: bend it or slide into the 3.",
+      chTxt_en: "it clashes with the chord’s 3. That rub is the blues." },
       dom9: { ch: [3], about: "Bliuzo garsas ant 9 akordo: funk ir bliuzo klasika.",
       cmp: "♭3 kertasi su akordo 3, todėl jos nelaikykite: stumkite (bend) arba slyskite į 3.",
-      chTxt: "ji kertasi su akordo 3. Būtent ši trintis ir yra bliuzas." },
+      chTxt: "ji kertasi su akordo 3. Būtent ši trintis ir yra bliuzas.",
+      about_en: "The blues sound over a 9 chord: a funk and blues classic.",
+      cmp_en: "The ♭3 clashes with the chord’s 3, so don’t hold it: bend it or slide into the 3.",
+      chTxt_en: "it clashes with the chord’s 3. That rub is the blues." },
       sus4: { about: "Ant sus4 skamba švariai: tercijos nėra nei akorde, nei gamoje, o R, 4, 5 ir ♭7 tinka visos.",
-      cmp: "Natos tos pačios, tik akordo natos dabar R, 4 ir 5." },
+      cmp: "Natos tos pačios, tik akordo natos dabar R, 4 ir 5.",
+      about_en: "Sounds clean over sus4: there is no third in the chord or in the scale, and R, 4, 5 and ♭7 all fit.",
+      cmp_en: "Same notes; the chord tones are now R, 4 and 5." },
       alt: { about: "Hendrix akordas: 7♯9. ♯9 yra ta pati nata kaip pentatonikos ♭3, todėl minorinė pentatonika ant jo skamba natūraliai.",
-      cmp: "Natos tos pačios, tik ♭3 dabar yra akordo ♯9." } },
+      cmp: "Natos tos pačios, tik ♭3 dabar yra akordo ♯9.",
+      about_en: "The Hendrix chord: 7♯9. The ♯9 is the same note as the pentatonic ♭3, so minor pentatonic sounds natural over it.",
+      cmp_en: "Same notes; the ♭3 is now the chord’s ♯9." } },
     about: "Saugiausias pasirinkimas solo: rokas, bliuzas, popsas. Penkios natos, ir nė viena nesikerta su akordu.",
     cmp: "Natural minor be 2 ir ♭6.",
+    about_en: "The safest choice for soloing: rock, blues, pop. Five notes, and none of them clashes with the chord.",
+    cmp_en: "Natural minor without the 2 and ♭6.",
     same: { iv: 3, q: "maj", word: "major pentatonic", n: 5 } },
   aeo: { q: "min", kind: "scale", btn: "Natural minor", name: "natural minor",
     deg: [...MIN7, [8,"♭6"], [10,"♭7"]], ch: [8],
     about: "Klasikinis, liūdnas minoras: rokas, metalas, baladės.",
     cmp: "Pentatonika ir dar dvi natos: 2 ir ♭6.",
     chTxt: "skiria Natural minor nuo Dorian ir suteikia liūdesio.",
+    about_en: "Classic, sad minor: rock, metal, ballads.",
+    cmp_en: "The pentatonic plus two notes: 2 and ♭6.",
+    chTxt_en: "it sets Natural minor apart from Dorian and gives it the sadness.",
     same: { iv: 3, q: "maj", word: "Major", n: 7 } },
   dor: { q: "min", kind: "scale", btn: "Dorian", name: "Dorian",
     deg: [...MIN7, [9,"6"], [10,"♭7"]], ch: [9],
     about: "Šviesesnis, pakylėtas minoras: funk, soul, lotynų rokas, džiazas.",
     cmp: "Natural minor, tik 6 pakelta pustoniu.",
     chTxt: "skiria Dorian nuo Natural minor. Užgaukite ją, ir išgirsite gamos spalvą.",
+    about_en: "A brighter, lifted minor: funk, soul, Latin rock, jazz.",
+    cmp_en: "Natural minor with the 6 raised a half step.",
+    chTxt_en: "it sets Dorian apart from Natural minor. Hit it and you hear the scale’s colour.",
     same: { iv: 10, q: "maj", word: "Major", n: 7 } },
   phr: { q: "min", kind: "scale", btn: "Phrygian", name: "Phrygian",
     deg: [[0,"R"],[1,"♭2"],[3,"♭3"],[5,"4"],[7,"5"],[8,"♭6"],[10,"♭7"]], ch: [1],
     about: "Tamsus, įtemptas, ispaniškas atspalvis: metalas, flamenkas.",
     cmp: "Natural minor, tik 2 nuleista pustoniu (♭2).",
     chTxt: "skiria Phrygian nuo Natural minor. Ypač gerai skamba judesys ♭2 → R.",
+    about_en: "Dark, tense, with a Spanish flavour: metal, flamenco.",
+    cmp_en: "Natural minor with the 2 lowered a half step (♭2).",
+    chTxt_en: "it sets Phrygian apart from Natural minor. The move ♭2 → R sounds especially good.",
     same: { iv: 8, q: "maj", word: "Major", n: 7 } },
   harm: { q: "min", kind: "scale", btn: "Harmonic minor", name: "harmonic minor",
     deg: [...MIN7, [8,"♭6"], [11,"7"]], ch: [11],
     about: "Neoklasikinis, rytietiškas skambesys: Yngwie Malmsteen, metalas, klezmeris.",
     cmp: "Natural minor, tik ♭7 pakelta į 7. Tarp ♭6 ir 7 lieka pusantro tono tarpas.",
     chTxt: "skiria Harmonic minor nuo Natural minor. Ji traukia į Root, todėl tinka frazei užbaigti.",
-    also: { iv: 7, q: "maj", suf: "7", txt: (c, h) => `Kai ${c} veda atgal į ${h}, harmoninis minoras ant jo skamba geriausiai.` } },
+    about_en: "Neoclassical, eastern sound: Yngwie Malmsteen, metal, klezmer.",
+    cmp_en: "Natural minor with the ♭7 raised to 7. That leaves a step and a half between ♭6 and 7.",
+    chTxt_en: "it sets Harmonic minor apart from Natural minor. It pulls to the Root, so it ends a phrase well.",
+    also: { iv: 7, q: "maj", suf: "7", txt: (c, h) => `Kai ${c} veda atgal į ${h}, harmoninis minoras ant jo skamba geriausiai.`,
+      txt_en: (c, h) => `When ${c} leads back to ${h}, harmonic minor sounds best over it.` } },
   mel: { q: "min", kind: "scale", btn: "Melodic minor", name: "melodic minor",
     deg: [...MIN7, [9,"6"], [11,"7"]], ch: [9, 11],
     about: "Džiazo minoras: apačia minorinė, viršus mažorinis.",
     cmp: "Natural minor, tik 6 ir 7 pakeltos. Arba Major su ♭3.",
     chTxt: "skiria Melodic minor nuo Natural minor. Kylant gama skamba beveik kaip Major.",
-    also: { iv: 0, q: "min", suf: "6", txt: c => `Taip pat tinka ant ${c.replace("6", "(maj7)")}: džiaze tai jo pagrindinė gama.` } },
+    about_en: "The jazz minor: minor at the bottom, major at the top.",
+    cmp_en: "Natural minor with the 6 and 7 raised. Or Major with a ♭3.",
+    chTxt_en: "they set Melodic minor apart from Natural minor. Going up, the scale sounds almost like Major.",
+    also: { iv: 0, q: "min", suf: "6", txt: c => `Taip pat tinka ant ${c.replace("6", "(maj7)")}: džiaze tai jo pagrindinė gama.`,
+      txt_en: c => `Also fits ${c.replace("6", "(maj7)")}: in jazz it is that chord’s main scale.` } },
   Mpent: { q: "maj", kind: "scale", btn: "Major pentatonic", name: "major pentatonic",
     deg: [[0,"R"],[2,"2"],[4,"3"],[7,"5"],[9,"6"]], blue: [3, "♭3"], ch: [],
     about: "Šviesi ir saugi: kantri, popsas, southern rokas.",
     cmp: "Major be 4 ir 7.",
+    about_en: "Bright and safe: country, pop, southern rock.",
+    cmp_en: "Major without the 4 and 7.",
     same: { iv: 9, q: "min", word: "minor pentatonic", n: 5 } },
   ion: { q: "maj", kind: "scale", btn: "Major", name: "Major",
     deg: [...MAJ5, [9,"6"], [11,"7"]], ch: [],
     about: "Šviesus, stabilus skambesys: popsas, kantri, liaudies dainos.",
     cmp: "Pentatonika ir dar dvi natos: 4 ir 7. 4 kertasi su 3, todėl ant jos ilgai nesustokite.",
+    about_en: "Bright, stable sound: pop, country, folk songs.",
+    cmp_en: "The pentatonic plus two notes: 4 and 7. The 4 clashes with the 3, so don’t rest on it.",
     same: { iv: 9, q: "min", word: "natural minor", n: 7 } },
   lyd: { q: "maj", kind: "scale", btn: "Lydian", name: "Lydian",
     deg: [[0,"R"],[2,"2"],[4,"3"],[6,"♯4"],[7,"5"],[9,"6"],[11,"7"]], ch: [6],
     about: "Sapniškas, plaukiantis skambesys: kino muzika, Joe Satriani, Steve Vai.",
     cmp: "Major, tik 4 pakelta pustoniu (♯4).",
     chTxt: "skiria Lydian nuo Major. Palaikykite ją ilgiau, ir išgirsite sapnišką spalvą.",
+    about_en: "Dreamy, floating sound: film music, Joe Satriani, Steve Vai.",
+    cmp_en: "Major with the 4 raised a half step (♯4).",
+    chTxt_en: "it sets Lydian apart from Major. Hold it longer and you hear the dreamy colour.",
     same: { iv: 7, q: "maj", word: "Major", n: 7 } },
   mix: { q: "maj", kind: "scale", btn: "Mixolydian", name: "Mixolydian",
     deg: [...MAJ5, [9,"6"], [10,"♭7"]], ch: [10],
     about: "Major su bliuzo prieskoniu: rokas, bliuzas, funk, kantri.",
     cmp: "Major, tik 7 nuleista pustoniu (♭7).",
     chTxt: "skiria Mixolydian nuo Major. Su ja mažoras skamba bliuziškai.",
+    about_en: "Major with a bluesy edge: rock, blues, funk, country.",
+    cmp_en: "Major with the 7 lowered a half step (♭7).",
+    chTxt_en: "it sets Mixolydian apart from Major. It makes major sound bluesy.",
     same: { iv: 5, q: "maj", word: "Major", n: 7 },
-    also: { iv: 0, q: "maj", suf: "7", txt: () => "Ant dominantinio septakordo tai pagrindinė gama." },
-    ctx: { dom7: { also: null, about: "Pagrindinė gama ant 7 akordo: rokas, bliuzas, funk, kantri." },
-      dom9: { also: null, about: "Pagrindinė gama ant 9 akordo: funk, soul, bliuzas." },
-      sus4: { also: null, about: "Dažniausia gama ant sus4. 3 kertasi su akordo 4, todėl ja tik praeikite arba palaukite, kol akordas išsispręs į mažorą." } } },
+    also: { iv: 0, q: "maj", suf: "7", txt: () => "Ant dominantinio septakordo tai pagrindinė gama.", txt_en: () => "The main scale over a dominant seventh chord." },
+    ctx: { dom7: { also: null, about: "Pagrindinė gama ant 7 akordo: rokas, bliuzas, funk, kantri.", about_en: "The main scale over a 7 chord: rock, blues, funk, country." },
+      dom9: { also: null, about: "Pagrindinė gama ant 9 akordo: funk, soul, bliuzas.", about_en: "The main scale over a 9 chord: funk, soul, blues." },
+      sus4: { also: null, about: "Dažniausia gama ant sus4. 3 kertasi su akordo 4, todėl ja tik praeikite arba palaukite, kol akordas išsispręs į mažorą.",
+        about_en: "The most common scale over sus4. The 3 clashes with the chord’s 4, so just pass through it or wait for the chord to resolve to major." } } },
   lyddom: { q: "dom7", kind: "scale", btn: "Lydian dominant", name: "Lydian dominant",
     deg: [[0,"R"],[2,"2"],[4,"3"],[6,"♯4"],[7,"5"],[9,"6"],[10,"♭7"]], ch: [6],
     about: "Mixolydian su ♯4: šviesus, kiek „kosminis“ skambesys. Džiazas, fusion, kino muzika.",
     cmp: "Mixolydian, tik 4 pakelta pustoniu (♯4).",
     chTxt: "skiria Lydian dominant nuo Mixolydian. Ji neturi įtampos su akordo 3, todėl ant jos galima sustoti.",
+    about_en: "Mixolydian with a ♯4: a bright, slightly “cosmic” sound. Jazz, fusion, film music.",
+    cmp_en: "Mixolydian with the 4 raised a half step (♯4).",
+    chTxt_en: "it sets Lydian dominant apart from Mixolydian. It doesn’t fight the chord’s 3, so you can rest on it.",
     same: { iv: 7, q: "min", word: "melodic minor", n: 7 } },
   loc: { q: "m7b5", kind: "scale", btn: "Locrian", name: "Locrian",
     deg: [[0,"R"],[1,"♭2"],[3,"♭3"],[5,"4"],[6,"♭5"],[8,"♭6"],[10,"♭7"]], ch: [1],
     about: "Tamsiausia gama, skirta m7♭5 akordui. Dažniausiai jis būna minorinės kadencijos pradžioje (II–V–I).",
     cmp: "Natural minor, tik 2 ir 5 nuleistos (♭2 ir ♭5).",
     chTxt: "skiria Locrian nuo Locrian ♮2. Ji labai įtempta, todėl ant jos nesustokite.",
+    about_en: "The darkest scale, made for the m7♭5 chord, which usually opens a minor cadence (II–V–I).",
+    cmp_en: "Natural minor with the 2 and 5 lowered (♭2 and ♭5).",
+    chTxt_en: "it sets Locrian apart from Locrian ♮2. It is very tense, so don’t rest on it.",
     same: { iv: 1, q: "maj", word: "Major", n: 7 } },
   loc2: { q: "m7b5", kind: "scale", btn: "Locrian ♮2", name: "Locrian ♮2",
     deg: [[0,"R"],[2,"2"],[3,"♭3"],[5,"4"],[6,"♭5"],[8,"♭6"],[10,"♭7"]], ch: [2],
     about: "Švelnesnė Locrian versija. Džiazo gitaristai ją dažniau renkasi ant m7♭5.",
     cmp: "Locrian, tik 2 pakelta (♮2).",
     chTxt: "skiria Locrian ♮2 nuo Locrian ir sušvelnina skambesį.",
+    about_en: "A softer Locrian. Jazz guitarists often prefer it over m7♭5.",
+    cmp_en: "Locrian with the 2 raised (♮2).",
+    chTxt_en: "it sets Locrian ♮2 apart from Locrian and softens the sound.",
     same: { iv: 3, q: "min", word: "melodic minor", n: 7 } },
   dimwh: { q: "dim7", kind: "scale", btn: "Diminished", name: "diminished",
     deg: [[0,"R"],[2,"2"],[3,"♭3"],[5,"4"],[6,"♭5"],[8,"♭6"],[9,"𝄫7",6],[11,"7"]], ch: [],
     about: "Simetrinė gama: tonas ir pustonis pakaitomis. Formos kartojasi kas 3 ladus, todėl išmokę vieną, mokate visas.",
-    cmp: "8 natos: kas antra yra akordo nata, o tarp jų po vieną natą tonu aukščiau." },
+    cmp: "8 natos: kas antra yra akordo nata, o tarp jų po vieną natą tonu aukščiau.",
+    about_en: "A symmetric scale: whole step and half step in turn. The shapes repeat every 3 frets, so learn one and you know them all.",
+    cmp_en: "8 notes: every other one is a chord tone, each with a note a whole step above it." },
   wt: { q: "aug", kind: "scale", btn: "Whole tone", name: "whole tone",
     deg: [[0,"R"],[2,"2"],[4,"3"],[6,"♯4"],[8,"♯5"],[10,"♭7"]], ch: [],
     about: "Simetrinė gama vien iš tonų: sapniška, neapibrėžta. Formos kartojasi kas 2 ladus.",
-    cmp: "6 natos, visi tarpai po toną, todėl nėra nei kvartos, nei kvintos." },
+    cmp: "6 natos, visi tarpai po toną, todėl nėra nei kvartos, nei kvintos.",
+    about_en: "A symmetric scale of whole steps only: dreamy, undefined. The shapes repeat every 2 frets.",
+    cmp_en: "6 notes, all a whole step apart, so there is no fourth and no fifth." },
   alt: { q: "alt", kind: "scale", btn: "Altered", name: "altered",
     deg: [[0,"R"],[1,"♭9",2],[3,"♯9",3],[4,"3"],[6,"♭5",5],[8,"♯5",6],[10,"♭7"]], ch: [1, 6, 8],
     about: "Džiazo gama dominantei, kuri veda į toniką: visos įtemptos natos (♭9, ♯9, ♭5, ♯5). Skamba „išorėje“ ir stipriai traukia į kitą akordą.",
     cmp: "R, 3 ir ♭7 iš akordo, o 5 ir 9 abiem pusėm pakeistos pustoniu.",
     chTxt: "jos daro gamą įtemptą. Užbaikite frazę kitame akorde, ne ant jų.",
+    about_en: "The jazz scale for a dominant that resolves to the tonic: all the tension notes (♭9, ♯9, ♭5, ♯5). It sounds “outside” and pulls hard to the next chord.",
+    cmp_en: "R, 3 and ♭7 come from the chord; the 5 and 9 are moved a half step both ways.",
+    chTxt_en: "they make the scale tense. End the phrase on the next chord, not on them.",
     same: { iv: 1, q: "min", word: "melodic minor", n: 7 } },
-  arp: { q: "*", kind: "arp", btn: "Arpedžas", name: "arpedžas",
-    about: "Tik akordo natos. Grokite jas, kai akordas keičiasi: tada solo seka ne tik tonaciją, bet ir patį akordą." },
-  p5: { q: "*", kind: "pair", btn: "Kvintos", name: "kvintos", iv: 7, lab: "5", deg: 5, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
+  arp: { q: "*", kind: "arp", btn: "Arpedžas", name: "arpedžas", btn_en: "Arpeggio", name_en: "arpeggio",
+    about: "Tik akordo natos. Grokite jas, kai akordas keičiasi: tada solo seka ne tik tonaciją, bet ir patį akordą.",
+    about_en: "Chord tones only. Play them when the chord changes: then the solo follows not just the key but the chord itself." },
+  p5: { q: "*", kind: "pair", btn: "Kvintos", name: "kvintos", btn_en: "Fifths", name_en: "fifths",
+    about_en: "Root and fifth together make a power chord. Works over minor and major chords alike, since there is no third.", iv: 7, lab: "5", deg: 5, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
     about: "Root ir kvinta kartu yra power chord. Tinka ir minoriniam, ir mažoriniam akordui, nes tercijos čia nėra." },
-  p4: { q: "*", kind: "pair", btn: "Kvartos", name: "kvartos", iv: 5, lab: "4", deg: 4, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
+  p4: { q: "*", kind: "pair", btn: "Kvartos", name: "kvartos", btn_en: "Fourths", name_en: "fourths",
+    about_en: "Root and fourth: an open, sus4 sound. A classic move: play the fourth, then drop the top note to the third.", iv: 5, lab: "4", deg: 4, pairs: [[5,4],[4,3],[3,2],[2,1],[1,0]],
     about: "Root ir kvarta: atviras, sus4 skambesys. Klasikinis judesys: sugroti kvartą, o viršutinę natą nuleisti į tercią." },
-  p8: { q: "*", kind: "pair", btn: "Oktavos", name: "oktavos", iv: 12, lab: "R", deg: 1, pairs: [[5,3],[4,2],[3,1],[2,0]],
+  p8: { q: "*", kind: "pair", btn: "Oktavos", name: "oktavos", btn_en: "Octaves", name_en: "octaves",
+    about_en: "The same note an octave apart. It thickens a melody (Wes Montgomery style) and quickly finds the Root anywhere on the neck.", iv: 12, lab: "R", deg: 1, pairs: [[5,3],[4,2],[3,1],[2,0]],
     about: "Ta pati nata per oktavą. Ja storinama melodija (Wes Montgomery stilius), be to, taip greitai randamas Root visame grife." }
 };
 const ORDER = {
@@ -699,7 +785,7 @@ function drawBoard() {
 
 /* ---------- side cards */
 function boxRange(k) {
-  return B[k].inst.map(I => I.min === I.max ? `${I.min}` : `${I.min}–${I.max}`).join(" ir ");
+  return B[k].inst.map(I => I.min === I.max ? `${I.min}` : `${I.min}–${I.max}`).join(T(" ir ", " and "));
 }
 function rootBoxOn(s) {
   for (const b of B) for (const I of b.inst) { const fr = I.strings[s]; if (fr.length && mod(OPEN[s] + fr[0]) === S.root) return b.k; }
@@ -712,36 +798,39 @@ const row = (b, fr, sub) => `<div class="jrow"><b>${b}</b><span class="fr">${fr}
 const pick = (k, t) => `<button data-pick="${k}">${t}</button>`;
 function rootRows() {
   const k6 = rootBoxOn(5), k5 = rootBoxOn(4);
-  return row("Root 6-oje stygoje", fretsOf(4), `Root: ${pick(k6, `${k6 + 1} forma`)}, ${boxRange(k6)} ladai`) +
-         row("Root 5-oje stygoje", fretsOf(9), `Root: ${pick(k5, `${k5 + 1} forma`)}, ${boxRange(k5)} ladai`);
+  const r = (s, k, f) => row(T(`Root ${s}-oje stygoje`, `Root on string ${s}`), fretsOf(f),
+    T(`Root: ${pick(k, `${k + 1} forma`)}, ${boxRange(k)} ladai`, `Root: ${pick(k, `shape ${k + 1}`)}, frets ${boxRange(k)}`));
+  return r(6, k6, 4) + r(5, k5, 9);
 }
 function drawAbout() {
   const st = SET(), r = S.root, q = S.q, map = degMap();
-  $("aboutTitle").textContent = st.kind === "pair" ? "Apie dvigarsius" : st.kind === "arp" ? "Apie arpedžą" : "Apie gamą";
-  $("about").textContent = st.about;
+  $("aboutTitle").textContent = st.kind === "pair" ? T("Apie dvigarsius", "About double stops") : st.kind === "arp" ? T("Apie arpedžą", "About the arpeggio") : T("Apie gamą", "About the scale");
+  $("about").textContent = tx(st, "about");
   let h = "";
   if (st.kind === "scale") {
     const ch = chOf(st).map(i => map.get(i).name);
-    h += row(ch.length ? (ch.length > 1 ? "Būdingos natos" : "Būdinga nata") : "Lyginant", ch.join(" "), st.cmp);
+    h += row(ch.length ? (ch.length > 1 ? T("Būdingos natos", "Characteristic notes") : T("Būdinga nata", "Characteristic note")) : T("Lyginant", "Compared"), ch.join(" "), tx(st, "cmp"));
     if (st.same) {
       const p = mod(r + st.same.iv), c = chordName(p, st.same.q);
-      h += row("Tos pačios natos kaip", c,
-        `${rootName(p, st.same.q)} ${st.same.word}: tos pačios ${st.same.n} natos${st.same.n === 5 ? " ir formos" : ""}, tik Root kitas. Frazes baikite ant ${rootName(r, q)}.`);
+      h += row(T("Tos pačios natos kaip", "Same notes as"), c, T(
+        `${rootName(p, st.same.q)} ${st.same.word}: tos pačios ${st.same.n} natos${st.same.n === 5 ? " ir formos" : ""}, tik Root kitas. Frazes baikite ant ${rootName(r, q)}.`,
+        `${rootName(p, st.same.q)} ${st.same.word}: the same ${st.same.n} notes${st.same.n === 5 ? " and shapes" : ""}, just a different Root. End your phrases on ${rootName(r, q)}.`));
     }
     if (st.also) {
       const p = mod(r + st.also.iv), c = rootName(p, st.also.q) + (st.also.q === "min" ? "m" : "") + st.also.suf;
-      h += row("Dar tinka ant", c, st.also.txt(c, chordName(r, q)));
+      h += row(T("Dar tinka ant", "Also fits"), c, tx(st.also, "txt")(c, chordName(r, q)));
     }
     h += rootRows();
   } else if (st.kind === "arp") {
-    h += row("Akordo natos", chordNotes().join(" "), `${B.length} formos: kiekviena prasideda nuo vis kitos akordo natos 6-oje stygoje.`);
+    h += row(T("Akordo natos", "Chord tones"), chordNotes().join(" "), T(`${B.length} formos: kiekviena prasideda nuo vis kitos akordo natos 6-oje stygoje.`, `${B.length} shapes: each starts on a different chord tone on string 6.`));
     h += rootRows();
   } else {
     for (const F of B) {
       const bString = (F.s2 === 1 && F.s1 === 2) || (st.iv === 12 && F.s2 <= 1);
-      const how = F.d === 0 ? "Antroji nata tame pačiame lade." : `Antroji nata ${F.d} ${F.d === 1 ? "ladu" : "ladais"} aukščiau.`;
-      h += row(pick(F.k, `${F.label} stygos`), F.d > 0 ? `+${F.d}` : `${F.d}`,
-        how + (bString ? " B styga suderinta kitaip, todėl vienu ladu daugiau." : ""));
+      const how = F.d === 0 ? T("Antroji nata tame pačiame lade.", "The second note is on the same fret.")
+        : T(`Antroji nata ${F.d} ${F.d === 1 ? "ladu" : "ladais"} aukščiau.`, `The second note is ${F.d} fret${F.d === 1 ? "" : "s"} higher.`);
+      h += row(pick(F.k, T(`${F.label} stygos`, `Strings ${F.label}`)), F.d > 0 ? `+${F.d}` : `${F.d}`,
+        how + (bString ? T(" B styga suderinta kitaip, todėl vienu ladu daugiau.", " The B string is tuned differently, hence one fret more.") : ""));
     }
   }
   $("jam").innerHTML = h;
@@ -753,21 +842,22 @@ function drawLegend() {
   const st = SET(), map = degMap(), items = [], CT = andJoin(chordLabs());
   const labs = c => [...map.values()].filter(d => d.c === c).map(d => d.l);
   if (st.kind === "scale") {
-    items.push(["n-root", "Root", "Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", true]);
-    items.push(["n-strong", "Stiprios", `${CT}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, true]);
+    items.push(["n-root", "Root", T("Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", "The chord’s foundation. The safest place to start and end a phrase."), true]);
+    items.push(["n-strong", T("Stiprios", "Strong"), T(`${CT}: kitos akordo natos. Ant jų galima sustoti ir ilgai laikyti.`, `${CT}: the other chord tones. You can stop on them and hold them.`), true]);
     if (chOf(st).length) {
       const L = chOf(st).map(i => map.get(i).l);
-      items.push(["n-char", L.length > 1 ? "Būdingos" : "Būdinga", `${andJoin(L)}: ${L.length > 1 ? st.chTxt.replace("skiria", "jos skiria") : st.chTxt.replace("skiria", "ji skiria")}`, true]);
+      items.push(["n-char", L.length > 1 ? T("Būdingos", "Characteristic") : T("Būdinga", "Characteristic"),
+        `${andJoin(L)}: ${LANG === "en" ? tx(st, "chTxt") : L.length > 1 ? st.chTxt.replace("skiria", "jos skiria") : st.chTxt.replace("skiria", "ji skiria")}`, true]);
     }
-    if (labs("weak").length) items.push(["n-weak", "Silpnos", `${andJoin(labs("weak"))}: likusios gamos natos. Gerai skamba einant per jas į stiprią natą.`, true]);
-    if (st.blue) items.push(["n-blue", "Blue nata", `${st.blue[1]}: bliuzo spalva. Slyskite per ją, nesustokite.${S.blue ? "" : " Įjunkite „Blue nata“."}`, S.blue]);
+    if (labs("weak").length) items.push(["n-weak", T("Silpnos", "Passing"), T(`${andJoin(labs("weak"))}: likusios gamos natos. Gerai skamba einant per jas į stiprią natą.`, `${andJoin(labs("weak"))}: the rest of the scale. They sound good on the way to a strong note.`), true]);
+    if (st.blue) items.push(["n-blue", T("Blue nata", "Blue note"), T(`${st.blue[1]}: bliuzo spalva. Slyskite per ją, nesustokite.${S.blue ? "" : " Įjunkite „Blue nata“."}`, `${st.blue[1]}: the blues colour. Slide through it, don’t stop on it.${S.blue ? "" : " Turn on “Blue note”."}`), S.blue]);
   } else if (st.kind === "arp") {
-    items.push(["n-root", "Root", "Akordo pagrindas. Nuo jo patogiausia pradėti arpedžą.", true]);
-    items.push(["n-strong", "Stiprios", `${CT}: kitos akordo natos. Arpedžą sudaro tik jos.`, true]);
+    items.push(["n-root", "Root", T("Akordo pagrindas. Nuo jo patogiausia pradėti arpedžą.", "The chord’s foundation. The easiest place to start the arpeggio."), true]);
+    items.push(["n-strong", T("Stiprios", "Strong"), T(`${CT}: kitos akordo natos. Arpedžą sudaro tik jos.`, `${CT}: the other chord tones. The arpeggio is made of these only.`), true]);
   } else {
-    items.push(["n-root", "Root", st.iv === 12 ? "Abi poros natos: ta pati nata per oktavą. Grokite jas kartu, o tarpinę stygą prislopinkite." : "Apatinė poros nata.", true]);
-    if (st.iv === 7) items.push(["n-strong", "Kvinta", "5: viršutinė nata. Su Root sudaro power chord.", true]);
-    if (st.iv === 5) items.push(["n-strong", "Kvarta", "4: viršutinė nata. Ne akordo nata: skamba atvirai, kaip sus4, ir nori nueiti į 3.", true]);
+    items.push(["n-root", "Root", st.iv === 12 ? T("Abi poros natos: ta pati nata per oktavą. Grokite jas kartu, o tarpinę stygą prislopinkite.", "Both notes of the pair: the same note an octave apart. Play them together and mute the string in between.") : T("Apatinė poros nata.", "The lower note of the pair."), true]);
+    if (st.iv === 7) items.push(["n-strong", T("Kvinta", "Fifth"), T("5: viršutinė nata. Su Root sudaro power chord.", "5: the upper note. With the Root it makes a power chord."), true]);
+    if (st.iv === 5) items.push(["n-strong", T("Kvarta", "Fourth"), T("4: viršutinė nata. Ne akordo nata: skamba atvirai, kaip sus4, ir nori nueiti į 3.", "4: the upper note. Not a chord tone: it sounds open, like sus4, and wants to move to the 3."), true]);
   }
   $("legend").innerHTML = items.map(([c, t, d, on]) => `<li class="${on ? "" : "off"}">${swatch(c)}<span><b>${t}.</b> ${d}</span></li>`).join("");
 }
@@ -792,10 +882,10 @@ function drawTab() {
   const span = ({ t, c }, w) => `<span class="t-${c}">${t}</span>` + "-".repeat(w - t.length);
   let rows;
   if (isPair()) {
-    $("tabTitle").textContent = "Stygos";
+    $("tabTitle").textContent = T("Stygos", "Strings");
     $("formN").textContent = F.label;
     drawChord(0, 0);
-    $("tabRange").textContent = F.pairs.length ? `${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2} ladai` : "";
+    $("tabRange").textContent = F.pairs.length ? T(`${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2} ladai`, `frets ${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2}`) : "";
     rows = SN.map((n, s) => {
       let line = `${n}|-`;
       for (const p of F.pairs) {
@@ -807,9 +897,9 @@ function drawTab() {
   } else {
     /* one column per fret, so the same fret lines up on every string */
     const notes = formNotes(), lo = Math.min(...notes.map(n => n[1])), hi = Math.max(...notes.map(n => n[1]));
-    $("tabTitle").textContent = "Forma";
+    $("tabTitle").textContent = T("Forma", "Shape");
     $("formN").textContent = k + 1;
-    $("tabRange").textContent = `${lo}–${hi} ladai`;
+    $("tabRange").textContent = T(`${lo}–${hi} ladai`, `frets ${lo}–${hi}`);
     drawChord(lo, hi);
     rows = SN.map((n, s) => {
       let line = `${n}|-`;
@@ -822,12 +912,11 @@ function drawTab() {
   $("formNext").disabled = k === B.length - 1;
   const all = !formSel();
   $("formEye").setAttribute("aria-pressed", String(all));
-  $("formEye").setAttribute("aria-label", all ? "Rodyti tik šią formą" : "Rodyti visas formas");
-  $("formEye").title = $("formEye").getAttribute("aria-label");
+  setLab($("formEye"), all ? T("Rodyti tik šią formą", "Show only this shape") : T("Rodyti visas formas", "Show all shapes"));
   /* only the interval pairs need a word on how to read the tab */
   const help = $("tabHelp");
   help.hidden = !isPair();
-  if (isPair()) help.innerHTML = "Kiekvienas stulpelis yra vienas dvigarsis: abi natas grokite kartu. <b>*</b> Root.";
+  if (isPair()) help.innerHTML = T("Kiekvienas stulpelis yra vienas dvigarsis: abi natas grokite kartu. <b>*</b> Root.", "Each column is one double stop: play both notes together. <b>*</b> Root.");
 }
 
 /* The chord in the form's position: every string gets a chord tone inside the form's frets or is muted.
@@ -940,10 +1029,10 @@ function drawChord(lo, hi) {
 }
 function showChord() {
   const v = curChord = chordL[chordI];
-  $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> akordas`;
+  $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> ${T("akordas", "chord")}`;
   const p = posOf(v);
   $("chordPosN").textContent = p;
-  $("chordPosN").title = p === 0 ? "atvira pozicija" : `${p} pozicija`;
+  $("chordPosN").dataset.tip = p === 0 ? T("Atvira pozicija", "Open position") : T(`${p} pozicija`, `Position ${p}`);
   $("chordPrev").disabled = chordI === 0;
   $("chordNext").disabled = chordI === chordL.length - 1;
   drawChordOverlay(chordView);
@@ -967,6 +1056,10 @@ $("formEye").addEventListener("click", () => {
 
 /* the chosen grip on the fretboard: own note circles on top (a chord tone may be outside the scale), × for muted strings */
 let chordView = false;
+function eyeLab() {
+  $("chordEye").setAttribute("aria-pressed", String(chordView));
+  setLab($("chordEye"), chordView ? T("Slėpti akordą grife", "Hide the chord on the neck") : T("Rodyti akordą grife", "Show the chord on the neck"));
+}
 function drawChordOverlay(scroll) {
   const fb = $("fb"), old = fb.querySelector("#chordOv"); if (old) old.remove();
   const v = curChord, on = chordView && v && !$("chordBox").hidden;
@@ -990,9 +1083,7 @@ function drawChordOverlay(scroll) {
 }
 $("chordEye").addEventListener("click", () => {
   chordView = !chordView;
-  $("chordEye").setAttribute("aria-pressed", String(chordView));
-  $("chordEye").setAttribute("aria-label", chordView ? "Slėpti akordą grife" : "Rodyti akordą grife");
-  $("chordEye").title = $("chordEye").getAttribute("aria-label");
+  eyeLab();
   drawChordOverlay(true);
 });
 $("chordPrev").addEventListener("click", () => { if (chordI > 0) { stopSeq(); chordI--; showChord(); } });
@@ -1007,21 +1098,28 @@ function drawRoots() {
   $("roots").innerHTML = Array.from({ length: 12 }, (_, pc) => {
     const iv = mod(pc - S.root), d = map.get(iv);
     const dg = `<span class="dg${iv === 0 ? " r" : d ? " in" : ""}" aria-hidden="true">${d ? deg(d.l) : CHROM[iv]}</span>`;
-    return `<button data-pc="${pc}" aria-pressed="${pc === S.root}">${rootName(pc, S.q)}${dg}</button>`;
+    const tip = pc === S.root ? T("Dabartinis Root. Skaičiukai: intervalai nuo jo", "Current Root. Small numbers: intervals from it")
+      : T(`${rootName(pc, S.q)} kaip Root. Skaičiukas: intervalas nuo ${rootName(S.root, S.q)}`, `${rootName(pc, S.q)} as Root. Small number: interval from ${rootName(S.root, S.q)}`);
+    return `<button data-pc="${pc}" aria-pressed="${pc === S.root}" data-tip="${esc(tip)}">${rootName(pc, S.q)}${dg}</button>`;
   }).join("");
 }
 function setPressed(id, v) { for (const b of $(id).querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === v)); }
 function drawControls() {
   const st = SET();
-  $("scaleSets").innerHTML = ORDER[S.q].map(id => `<button data-v="${id}" aria-pressed="${id === S.set}">${SETS[id].btn}</button>`).join("");
-  $("ivSets").innerHTML = ORDER.iv.map(id => `<button data-v="${id}" aria-pressed="${id === S.set}">${SETS[id].btn}</button>`).join("");
-  $("qSeg").innerHTML = Object.keys(CH).map(q => `<button data-v="${q}" aria-pressed="${q === S.q}">${CH[q].btn}</button>`).join("");
+  /* tooltip of a set: the first sentence of its description over the current chord */
+  const tipOf = id => { const o = SETS[id], c = o.ctx && o.ctx[S.q], a = c && tx(c, "about") ? tx(c, "about") : tx(o, "about"); return esc(a.split(/(?<=[.!?])\s/)[0]); };
+  const setBtn = id => `<button data-v="${id}" aria-pressed="${id === S.set}" data-tip="${tipOf(id)}">${tx(SETS[id], "btn")}</button>`;
+  $("scaleSets").innerHTML = ORDER[S.q].map(setBtn).join("");
+  $("ivSets").innerHTML = ORDER.iv.map(setBtn).join("");
+  $("qSeg").innerHTML = Object.keys(CH).map(q => `<button data-v="${q}" aria-pressed="${q === S.q}" data-tip="${esc(tx(CH[q], "tip"))} · ${CH[q].tones.map(t => t[1]).join(" ")}">${CH[q].btn}</button>`).join("");
   setPressed("labSeg", S.labels);
   $("blueSw").hidden = !st.blue;
   $("blueSw").setAttribute("aria-pressed", String(S.blue));
   $("groupSw").setAttribute("aria-pressed", String(S.group));
-  $("boxSeg").innerHTML = [["-1", "Visos"], ...B.map(F => [String(F.k), F.label])]
-    .map(([v, t]) => `<button data-v="${v}" aria-pressed="${String(+v === S.box)}">${t}</button>`).join("");
+  const pr = isPair();
+  $("boxSeg").innerHTML = [["-1", T("Visos", "All"), T("Rodyti visas formas", "Show all shapes")],
+    ...B.map(F => [String(F.k), F.label, pr ? T(`Rodyti ${F.label} stygas`, `Show strings ${F.label}`) : T(`Rodyti ${F.label} formą`, `Show shape ${F.label}`)])]
+    .map(([v, t, tip]) => `<button data-v="${v}" aria-pressed="${String(+v === S.box)}" data-tip="${tip}">${t}</button>`).join("");
   $("boxSeg").classList.toggle("off", !S.group);
 }
 function drawHead() {
@@ -1031,11 +1129,12 @@ function drawHead() {
   if (st.kind === "scale") notes = st.deg.map(([i, l, d]) => nameAt(r, q, i, d || degNum(l))).join(" ");
   else if (st.kind === "arp") notes = chordNotes().join(" ");
   else notes = st.iv === 12 ? `${rootName(r, q)} + ${rootName(r, q)}` : `${rootName(r, q)} + ${map.get(st.iv).name}`;
-  $("scaleTitle").textContent = st.kind === "pair" ? `${st.btn} nuo ${rootName(r, q)}` : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${st.name}`;
+  $("scaleTitle").textContent = st.kind === "pair" ? T(`${st.btn} nuo ${rootName(r, q)}`, `${tx(st, "btn")} from ${rootName(r, q)}`) : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${tx(st, "name")}`;
   $("scaleNotes").textContent = notes;
   const F = formSel() ? B[S.box] : null;
-  $("footBox").textContent = !S.group ? "be formų" : F ? (st.kind === "pair" ? `${F.label} stygos` : `${S.box + 1} forma: ${boxRange(S.box)} ladai`)
-    : st.kind === "pair" ? "visos stygų poros" : `visos ${B.length} formos`;
+  $("footBox").textContent = !S.group ? T("be formų", "no shapes")
+    : F ? (st.kind === "pair" ? T(`${F.label} stygos`, `strings ${F.label}`) : T(`${S.box + 1} forma: ${boxRange(S.box)} ladai`, `shape ${S.box + 1}: frets ${boxRange(S.box)}`))
+    : st.kind === "pair" ? T("visos stygų poros", "all string pairs") : T(`visos ${B.length} formos`, `all ${B.length} shapes`);
 }
 
 function render(scrollToBox) {
@@ -1152,14 +1251,14 @@ function flash(grp) {
 let seqBtn = null;
 function stopSeq() {
   seqT.forEach(clearTimeout); seqT = [];
-  if (seqBtn) { seqBtn.classList.remove("on"); seqBtn.setAttribute("aria-label", seqBtn.dataset.lab); seqBtn.title = seqBtn.dataset.lab; seqBtn = null; }
+  if (seqBtn) { seqBtn.classList.remove("on"); setLab(seqBtn, seqBtn.dataset.lab); seqBtn = null; }
 }
 /* ev: list of [[string, fret], ...] groups; gap: ms before each group (number or function of index) */
 function playSeq(btn, ev, gap, strumGap) {
   const was = seqBtn === btn;
   stopSeq();
   if (was || !ev.length || !audio()) return;
-  seqBtn = btn; btn.classList.add("on"); btn.setAttribute("aria-label", "Sustabdyti"); btn.title = "Sustabdyti";
+  seqBtn = btn; btn.classList.add("on"); setLab(btn, T("Sustabdyti", "Stop"));
   let at = 0;
   ev.forEach((grp, i) => {
     seqT.push(setTimeout(() => {
@@ -1229,6 +1328,73 @@ const MOTTOS = [
   const [t, a] = MOTTOS[i]; $("motto").innerHTML = `“${t}” <i>– ${a}</i>`;
 }
 
+/* static words of the page in both languages: [id, what, lt, en]; "label" = aria-label + hover tip */
+const STATIC = [
+  ["chordPanel", "aria", "Akordas", "Chord"], ["qSeg", "aria", "Akordo tipas", "Chord type"], ["roots", "aria", "Akordo Root nata", "Chord root"],
+  ["scaleSets", "aria", "Gamos", "Scales"], ["ivSets", "aria", "Intervalai", "Intervals"], ["langSeg", "aria", "Kalba", "Language"],
+  ["fb", "aria", "Gitaros grifas su solo natomis. Bakstelėk natą, kad išgirstum.", "Guitar neck with the solo notes. Tap a note to hear it."],
+  ["scrollL", "label", "Slinkti grifą kairėn", "Scroll the neck left"], ["scrollR", "label", "Slinkti grifą dešinėn", "Scroll the neck right"],
+  ["footHint", "text", "e viršuje, E apačioje · bakstelėk natą, kad išgirstum", "high e on top, low E at the bottom · tap a note to hear it"],
+  ["blueTxt", "text", "Blue nata", "Blue note"], ["blueSw", "tip", "Prideda bliuzo natą prie pentatonikos", "Adds the blues note to the pentatonic"],
+  ["groupTxt", "text", "Formos", "Shapes"], ["groupSw", "tip", "Rodo formas ant grifo", "Shows the shapes on the neck"],
+  ["labL", "text", "Žymės", "Labels"],
+  ["labNames", "text", "Natos", "Notes"], ["labNames", "tip", "Ant natų rašyti pavadinimus (A, C, E)", "Show note names (A, C, E)"],
+  ["labInts", "text", "Intervalai", "Intervals"], ["labInts", "tip", "Ant natų rašyti intervalus (R, ♭3, 5)", "Show intervals (R, ♭3, 5)"],
+  ["legendTitle", "text", "Natų reikšmė", "What the notes do"],
+  ["formNav", "aria", "Forma", "Shape"], ["formPrev", "label", "Ankstesnė forma", "Previous shape"], ["formNext", "label", "Kita forma", "Next shape"],
+  ["chordNav", "aria", "Akordo pozicija", "Chord position"], ["chordPrev", "label", "Žemesnė pozicija", "Lower position"], ["chordNext", "label", "Aukštesnė pozicija", "Higher position"]
+];
+function applyLang() {
+  document.documentElement.lang = LANG;
+  for (const [id, what, lt, en] of STATIC) {
+    const el = $(id), t = T(lt, en);
+    if (what === "text") el.textContent = t;
+    else if (what === "aria") el.setAttribute("aria-label", t);
+    else if (what === "tip") el.dataset.tip = t;
+    else setLab(el, t);
+  }
+  $("playForm").dataset.lab = T("Groti formą", "Play shape");
+  $("playChord").dataset.lab = T("Groti akordą", "Play chord");
+  for (const b of [$("playForm"), $("playChord")]) setLab(b, b === seqBtn ? T("Sustabdyti", "Stop") : b.dataset.lab);
+  for (const b of $("langSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.lang === LANG));
+  eyeLab();
+}
+$("langSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || b.dataset.lang === LANG) return;
+  LANG = b.dataset.lang;
+  try { localStorage.setItem("lempinio-solo-lang", LANG); } catch (e) {}
+  /* a ?lang= link keeps working: the address follows the choice */
+  try { const u = new URL(location.href); if (u.searchParams.has("lang")) { u.searchParams.set("lang", LANG); history.replaceState(null, "", u); } } catch (e) {}
+  applyLang(); render();
+});
+
+/* hover tips: after ~0.7 s on anything with data-tip (mouse or keyboard focus), gone on click, scroll or Esc */
+{
+  const tip = document.createElement("div");
+  tip.id = "tip"; tip.setAttribute("role", "tooltip"); document.body.appendChild(tip);
+  let tmr = 0, cur = null;
+  const hide = () => { clearTimeout(tmr); tmr = 0; cur = null; tip.classList.remove("on"); };
+  const show = el => {
+    const t = el.dataset.tip; if (!t || !el.isConnected) return;
+    tip.textContent = t; tip.classList.add("on");
+    const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    const x = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+    let y = r.top - h - 8; if (y < 8) y = r.bottom + 8;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  };
+  const arm = el => { hide(); if (!el) return; cur = el; tmr = setTimeout(() => show(el), 700); };
+  document.addEventListener("pointerover", e => {
+    if (e.pointerType !== "mouse") return;
+    const el = e.target.closest("[data-tip]"); if (el !== cur) arm(el);
+  });
+  document.addEventListener("focusin", e => { const el = e.target.closest("[data-tip]"); if (el && el.matches(":focus-visible")) arm(el); });
+  document.addEventListener("focusout", hide);
+  document.addEventListener("pointerdown", hide, true);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+  addEventListener("scroll", hide, true);
+}
+
+applyLang();
 render(true);
 })();
 </script>
