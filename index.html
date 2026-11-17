@@ -561,10 +561,16 @@ const INSTR = {
         about_en: "In fifths, like a cello: a wider range and different shapes. Red Mitchell tuned his double bass this way." } ] }
   ] },
   b5: { lt: "5 stygų bosinė gitara", en: "5-string bass", btn: "5 st.", btn_en: "5-string", kind: "bass", base: 5, groups: [
-    { lt: "Standartas", en: "Standard", t: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
       { id: "std", name: "Standard", n: "B0 E1 A1 D2 G2",
         about: "Keturstygis bosas ir dar žemoji B apačioje. Šiuolaikinis popsas, gospel, metalas.",
-        about_en: "A four-string with a low B underneath. Modern pop, gospel, metal." } ] },
+        about_en: "A four-string with a low B underneath. Modern pop, gospel, metal." },
+      { id: "eb", name: "E♭ Standard", n: "B♭0 E♭1 A♭1 D♭2 G♭2",
+        about: "Visos stygos pustoniu žemiau, kaip ir gitaristai E♭ derinime. Formos tos pačios.",
+        about_en: "Every string a half step lower, to match guitarists in E♭. The same shapes." },
+      { id: "dstd", name: "D Standard", n: "A0 D1 G1 C2 F2",
+        about: "Visos stygos tonu žemiau: žemiausia nata A, o keturios viršutinės (D G C F) kaip keturstygio boso D Standard. Formos tos pačios.",
+        about_en: "Every string a whole step lower: the lowest note is A, and the top four (D G C F) match a four-string in D Standard. The same shapes." } ] },
     { lt: "Drop", en: "Drop", t: [
       { id: "dropa", name: "Drop A", n: "A0 E1 A1 D2 G2",
         about: "Žemoji B nuleista į A: žemiausia nata ir kvinta vienu pirštu ant dviejų apatinių stygų.",
@@ -572,17 +578,33 @@ const INSTR = {
     { lt: "Kiti", en: "Other", t: [
       { id: "tenor", name: "Tenor (EADGC)", n: "E1 A1 D2 G2 C3",
         about: "Vietoj žemosios B viršuje aukštoji C: daugiau melodijai ir akordams.",
-        about_en: "A high C on top instead of the low B: more room for melody and chords." } ] }
+        about_en: "A high C on top instead of the low B: more room for melody and chords." },
+      { id: "tenord", name: "Tenor D (DGCFB♭)", n: "D1 G1 C2 F2 B♭2",
+        about: "Tenor derinimas tonu žemiau: keturios apatinės kaip D Standard, viršuje B♭.",
+        about_en: "The tenor tuning a whole step down: the bottom four as in D Standard, with B♭ on top." } ] }
   ] },
   b6: { lt: "6 stygų bosinė gitara", en: "6-string bass", btn: "6 st.", btn_en: "6-string", kind: "bass", base: 5, groups: [
-    { lt: "Standartas", en: "Standard", t: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
       { id: "std", name: "Standard", n: "B0 E1 A1 D2 G2 C3",
         about: "Žemoji B ir aukštoji C: visas boso diapazonas ir dar vieta akordams bei solo. Džiazas, fusion.",
-        about_en: "A low B and a high C: the full bass range plus room for chords and solos. Jazz and fusion." } ] },
+        about_en: "A low B and a high C: the full bass range plus room for chords and solos. Jazz and fusion." },
+      { id: "eb", name: "E♭ Standard", n: "B♭0 E♭1 A♭1 D♭2 G♭2 B2",
+        about: "Visos stygos pustoniu žemiau, kaip ir gitaristai E♭ derinime. Formos tos pačios.",
+        about_en: "Every string a half step lower, to match guitarists in E♭. The same shapes." },
+      { id: "dstd", name: "D Standard", n: "A0 D1 G1 C2 F2 B♭2",
+        about: "Visos stygos tonu žemiau: A D G C F B♭. Formos tos pačios.",
+        about_en: "Every string a whole step lower: A D G C F B♭. The same shapes." } ] },
     { lt: "Drop", en: "Drop", t: [
       { id: "dropa", name: "Drop A", n: "A0 E1 A1 D2 G2 C3",
         about: "Žemoji B nuleista į A.",
-        about_en: "The low B drops to A." } ] }
+        about_en: "The low B drops to A." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "tenor", name: "Tenor (EADGCF)", n: "E1 A1 D2 G2 C3 F3",
+        about: "Visur kvartos, vietoj žemosios B viršuje aukštoji F: daugiau vietos melodijai ir akordams.",
+        about_en: "Fourths throughout, a high F on top instead of the low B: more room for melody and chords." },
+      { id: "gstyle", name: "Guitar-style (BEADF♯B)", n: "B0 E1 A1 D2 F♯2 B2",
+        about: "Tarpai kaip gitaros, tik kvarta žemiau ir dar oktava žemiau (kaip baritoninės gitaros): gitaros formos ir akordai tinka iškart.",
+        about_en: "The guitar’s gaps a fourth and an octave lower (like a baritone guitar): guitar shapes and chords work straight away." } ] }
   ] },
   tg: { lt: "Tenorinė gitara", en: "Tenor guitar", btn: "Tenorinė", btn_en: "Tenor", kind: "guitar", base: 7, groups: [
     { lt: "Standartas", en: "Standard", t: [
