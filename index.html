@@ -264,6 +264,29 @@ pre.tab .t-name{color:var(--screen-dim)}
 #fb .note circle.cv-ring{fill:none;stroke:var(--accent);stroke-width:2.2}
 .cv-xbg{fill:var(--screen)}
 .cv-x{font:700 14px var(--font-mono);fill:var(--accent);text-anchor:middle}
+/* instrument and tuning: its own panel under the cards, two sections with their own headings */
+.tunpanel{gap:0}
+.tsec{display:flex;flex-direction:column;gap:10px;padding-block:12px}
+.tsec:first-child{padding-top:0}
+.tsec + .tsec{border-top:1px solid var(--line)}
+.tsec:last-child{padding-bottom:0}
+.tgrps{display:flex;flex-wrap:wrap;gap:10px 18px}
+.tgrp{display:flex;flex-direction:column;gap:5px}
+.tgl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tgrp .seg button{font-size:13.5px;font-weight:600;padding:7px 11px}
+#instSeg .seg button{font-family:var(--font-narrow);font-size:15px;padding:7px 12px}
+#instSeg .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tunbody{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin-top:4px}
+.tunbody .about{flex:1 1 280px}
+.tstr{display:flex;gap:5px;background:var(--screen);border-radius:8px;padding:8px}
+.sc{display:flex;flex-direction:column;align-items:center;min-width:42px;padding:5px 4px 4px;border-radius:6px;border:1px solid var(--screen-line);color:var(--screen-ink)}
+.sc small{font:500 10px/1 var(--font-mono);color:var(--screen-dim)}
+.sc b{font-family:var(--font-display);font-weight:800;font-size:22px;line-height:1.1}
+.sc em{font:600 10.5px/1.2 var(--font-mono);font-style:normal;color:var(--screen-dim);min-height:1.2em;white-space:nowrap}
+.sc.chg{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sc.chg b,.sc.chg em{color:var(--accent)}
+.sname.chg{fill:var(--accent)}
+.peg{fill:var(--screen-dim)}
 .btn.sm{padding:6px 10px;font-size:13px;gap:6px}
 .btn.sm svg{width:13px;height:13px}
 @media (max-width:520px){h1{font-size:26px}.readout{gap:4px 12px}}
@@ -351,6 +374,20 @@ pre.tab .t-name{color:var(--screen-dim)}
       <p class="help" id="tabHelp" hidden></p>
     </section>
   </div>
+  <section class="panel tunpanel" id="tunPanel" aria-label="Instrumentas ir derinimas">
+    <div class="tsec">
+      <span class="label" id="instTitle">Instrumentas</span>
+      <div class="tgrps" id="instSeg" role="group" aria-label="Instrumentas"></div>
+    </div>
+    <div class="tsec">
+      <span class="label" id="tunTitle">Derinimas</span>
+      <div class="tgrps" id="tunSeg" role="group" aria-label="Derinimas"></div>
+      <div class="tunbody">
+        <div class="tstr" id="tunStrings" aria-label="Stygos"></div>
+        <p class="about" id="tunAbout"></p>
+      </div>
+    </div>
+  </section>
   <p class="copy">© Žydrūnas Strumila 2026</p>
 </div>
 
@@ -360,9 +397,311 @@ pre.tab .t-name{color:var(--screen-dim)}
 const $ = id => document.getElementById(id);
 const mod = n => ((n % 12) + 12) % 12;
 
-/* ---------- music data */
-const OPEN = [64, 59, 55, 50, 45, 40];          // e B G D A E (top to bottom)
-const SN = ["e", "B", "G", "D", "A", "E"];
+/* ---------- instruments and tunings
+   Notes low to high, the way tuners and tab books write them. Order: standard first, then the same intervals
+   lowered (shapes unchanged), then one or two strings changed (Drop), then strings that ring a chord (Open),
+   then other interval systems. base: the usual gap between neighbouring strings, in semitones. */
+const INSTR = {
+  g6: { lt: "6 stygų gitara", en: "6-string guitar", btn: "6 st.", btn_en: "6-string", kind: "guitar", base: 5, groups: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
+      { id: "std", name: "Standard", n: "E2 A2 D3 G3 B3 E4",
+        about: "Atskaitos taškas: tarp stygų kvartos, tik tarp G ir B didžioji tercija. Visos formos ir akordai šioje programoje skaičiuojami nuo jo.",
+        about_en: "The reference: fourths between the strings, with a major third between G and B. Every shape and chord here starts from it." },
+      { id: "eb", name: "E♭ Standard", n: "E♭2 A♭2 D♭3 G♭3 B♭3 E♭4",
+        about: "Visos stygos pustoniu žemiau. Stygos minkštesnės, lengviau tempti (bend). Taip grojo Jimi Hendrixas ir Stevie Ray Vaughanas.",
+        about_en: "Every string a half step lower. Slacker strings make bends easier. Jimi Hendrix and Stevie Ray Vaughan tuned this way." },
+      { id: "dstd", name: "D Standard", n: "D2 G2 C3 F3 A3 D4",
+        about: "Visos stygos tonu žemiau: tamsesnis, sunkesnis skambesys, formos tos pačios.",
+        about_en: "Every string a whole step lower: darker and heavier, with the same shapes." },
+      { id: "cstd", name: "C Standard", n: "C2 F2 B♭2 E♭3 G3 C4",
+        about: "Dviem tonais žemiau. Sunkusis rokas ir metalas; dažniausiai su storesnėmis stygomis.",
+        about_en: "Two whole steps lower. Heavy rock and metal, usually with heavier strings." },
+      { id: "bstd", name: "B Standard", n: "B1 E2 A2 D3 F♯3 B3",
+        about: "Penkiais pustoniais žemiau: žemiausia styga tampa B, kaip 7 stygų gitaros. Metalas, baritoninės gitaros.",
+        about_en: "Five half steps lower: the low string becomes B, as on a 7-string. Metal and baritone guitars." } ] },
+    { lt: "Drop", en: "Drop", t: [
+      { id: "dropd", name: "Drop D", n: "D2 A2 D3 G3 B3 E4",
+        about: "Tik žemiausia styga nuleista tonu. Power chord ant trijų žemųjų stygų groji vienu pirštu. Foo Fighters „Everlong“.",
+        about_en: "Only the low string drops a whole step. A power chord on the three low strings takes one finger. Foo Fighters’ “Everlong”." },
+      { id: "dropcs", name: "Drop C♯", n: "C♯2 G♯2 C♯3 F♯3 A♯3 D♯4",
+        about: "E♭ Standard ir dar nuleista žemiausia styga. Tie patys Drop D judesiai, tik pustoniu žemiau.",
+        about_en: "E♭ Standard with the low string dropped. The same Drop D moves, a half step lower." },
+      { id: "dropc", name: "Drop C", n: "C2 G2 C3 F3 A3 D4",
+        about: "D Standard ir nuleista žemiausia styga. Šiuolaikinis rokas ir metalas.",
+        about_en: "D Standard with the low string dropped. Modern rock and metal." },
+      { id: "dropb", name: "Drop B", n: "B1 F♯2 B2 E3 G♯3 C♯4",
+        about: "C♯ Standard ir nuleista žemiausia styga. Sunkusis metalas (Slipknot).",
+        about_en: "C♯ Standard with the low string dropped. Heavy metal (Slipknot)." },
+      { id: "ddropd", name: "Double Drop D", n: "D2 A2 D3 G3 B3 D4",
+        about: "Abi E stygos nuleistos į D. Viršuje ir apačioje skamba D, gerai tinka D tonacijai.",
+        about_en: "Both E strings dropped to D. D rings at the top and the bottom: made for the key of D." } ] },
+    { lt: "Atviri (Open)", en: "Open", t: [
+      { id: "opend", name: "Open D", n: "D2 A2 D3 F♯3 A3 D4",
+        about: "Atviros stygos kartu skamba D akordu. Slide gitara, folkas.",
+        about_en: "The open strings ring a D chord. Slide guitar and folk." },
+      { id: "openg", name: "Open G", n: "D2 G2 D3 G3 B3 D4",
+        about: "Atviros stygos skamba G akordu. Keitho Richardso derinimas (jis nuima žemiausią stygą).",
+        about_en: "The open strings ring a G chord. Keith Richards’ tuning (he takes off the low string)." },
+      { id: "opene", name: "Open E", n: "E2 B2 E3 G♯3 B3 E4",
+        about: "Open D tonu aukščiau. Slide bliuzas (Duane Allmanas).",
+        about_en: "Open D a whole step higher. Slide blues (Duane Allman)." },
+      { id: "opena", name: "Open A", n: "E2 A2 E3 A3 C♯4 E4",
+        about: "Open G tonu aukščiau, tie patys judesiai. Slide bliuzas.",
+        about_en: "Open G a whole step higher, the same moves. Slide blues." },
+      { id: "openc", name: "Open C", n: "C2 G2 C3 G3 C4 E4",
+        about: "Labai žemas ir platus C akordas: tarp apatinių stygų kvintos, todėl skambesys sodrus ir gaudžiantis.",
+        about_en: "A very low, wide C chord: fifths between the low strings give it a full, ringing sound." },
+      { id: "opendm", name: "Open D minor", n: "D2 A2 D3 F3 A3 D4",
+        about: "Open D su minorine tercija: atviros stygos skamba Dm akordu. Tamsus bliuzas (Skip Jamesas).",
+        about_en: "Open D with a minor third: the open strings ring D minor. Dark blues (Skip James)." } ] },
+    { lt: "Modaliniai ir kiti", en: "Modal and other", t: [
+      { id: "dadgad", name: "DADGAD", n: "D2 A2 D3 G3 A3 D4",
+        about: "Atviros stygos skamba Dsus4: nei mažoras, nei minoras. Keltų muzika, Led Zeppelin „Kashmir“.",
+        about_en: "The open strings ring Dsus4: neither major nor minor. Celtic music, Led Zeppelin’s “Kashmir”." },
+      { id: "fourths", name: "All Fourths", n: "E2 A2 D3 G3 C4 F4",
+        about: "Visur kvartos, net tarp G ir C. Formos vienodos visose stygose, nėra B stygos išimties. Stanley Jordanas.",
+        about_en: "Fourths everywhere, G to C included. The shapes are the same on every string set, no B-string exception. Stanley Jordan." },
+      { id: "nst", name: "New Standard", n: "C2 G2 D3 A3 E4 G4",
+        about: "Roberto Frippo derinimas: penkios kvintos ir viršuje mažoji tercija. Platus diapazonas, kaip violončelė ir smuikas kartu.",
+        about_en: "Robert Fripp’s tuning: fifths, then a minor third on top. A huge range, like a cello and a violin in one." } ] }
+  ] },
+  g7: { lt: "7 stygų gitara", en: "7-string guitar", btn: "7 st.", btn_en: "7-string", kind: "guitar", base: 5, groups: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
+      { id: "std", name: "Standard", n: "B1 E2 A2 D3 G3 B3 E4",
+        about: "Šešios stygos kaip įprastos gitaros ir dar viena žemoji B, kvarta žemiau E. Metalas ir džiazas.",
+        about_en: "Six strings as on a normal guitar plus a low B, a fourth under the E. Metal and jazz." },
+      { id: "astd", name: "A Standard", n: "A1 D2 G2 C3 F3 A3 D4",
+        about: "Visos stygos tonu žemiau. Formos tos pačios.",
+        about_en: "Every string a whole step lower. The same shapes." } ] },
+    { lt: "Drop", en: "Drop", t: [
+      { id: "dropa", name: "Drop A", n: "A1 E2 A2 D3 G3 B3 E4",
+        about: "Žemiausia B nuleista į A. Power chord ant dviejų žemųjų stygų vienu pirštu.",
+        about_en: "The low B drops to A. A power chord on the two low strings takes one finger." } ] },
+    { lt: "Atviri (Open)", en: "Open", t: [
+      { id: "rus", name: "Russian (Open G)", n: "D2 G2 B2 D3 G3 B3 D4",
+        about: "Rusiškoji septynstygė gitara: atviros stygos skamba G akordu. Rusų ir čigonų romansų tradicija.",
+        about_en: "The Russian 7-string guitar: the open strings ring a G chord. The Russian and Gypsy romance tradition." } ] }
+  ] },
+  g8: { lt: "8 stygų gitara", en: "8-string guitar", btn: "8 st.", btn_en: "8-string", kind: "guitar", base: 5, groups: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
+      { id: "std", name: "Standard", n: "F♯1 B1 E2 A2 D3 G3 B3 E4",
+        about: "Šešios įprastos stygos, žemoji B ir dar žemesnė F♯. Progresyvusis metalas.",
+        about_en: "Six normal strings, a low B and an even lower F♯. Progressive metal." },
+      { id: "fstd", name: "F Standard", n: "F1 B♭1 E♭2 A♭2 D♭3 G♭3 B♭3 E♭4",
+        about: "Visos stygos pustoniu žemiau. Formos tos pačios.",
+        about_en: "Every string a half step lower. The same shapes." },
+      { id: "estd", name: "E Standard", n: "E1 A1 D2 G2 C3 F3 A3 D4",
+        about: "Visos stygos tonu žemiau: žemiausia styga oktava žemiau įprastos E.",
+        about_en: "Every string a whole step lower: the low string is an octave under the usual low E." } ] },
+    { lt: "Drop", en: "Drop", t: [
+      { id: "drope", name: "Drop E", n: "E1 B1 E2 A2 D3 G3 B3 E4",
+        about: "Žemiausia F♯ nuleista į E, oktava žemiau įprastos E. Power chord ant dviejų žemųjų stygų vienu pirštu.",
+        about_en: "The low F♯ drops to E, an octave under the usual low E. A power chord on the two low strings takes one finger." } ] }
+  ] },
+  mando: { lt: "Mandolina", en: "Mandolin", btn: "Mandolina", btn_en: "Mandolin", kind: "mando", base: 7, crs: "uuuu", groups: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
+      { id: "std", name: "Standard", n: "G3 D4 A4 E5",
+        about: "Keturios poros stygų, tarp jų kvintos, kaip smuiko. Kvintų derinime gama telpa į mažesnį plotą: keturios natos stygoje.",
+        about_en: "Four pairs of strings tuned in fifths, like a violin. In fifths a scale fits a smaller area: four notes per string." },
+      { id: "cajun", name: "Cajun", n: "F3 C4 G4 D5",
+        about: "Visos stygos tonu žemiau. Kadžunų muzika.",
+        about_en: "Every string a whole step lower. Cajun music." } ] },
+    { lt: "Cross", en: "Cross", t: [
+      { id: "gdad", name: "GDAD", n: "G3 D4 A4 D5",
+        about: "Tik viršutinė styga nuleista į D. D tonacijos melodijoms, airių muzika.",
+        about_en: "Only the top string drops to D. For tunes in D, Irish music." },
+      { id: "adae", name: "ADAE", n: "A3 D4 A4 E5",
+        about: "Tik žemiausia styga pakelta į A (High Bass). Old-time D ir A tonacijoms.",
+        about_en: "Only the low string goes up to A (High Bass). Old-time tunes in D and A." },
+      { id: "gdgd", name: "GDGD", n: "G3 D4 G4 D5",
+        about: "Sawmill arba Cross G: atviros stygos skamba G5, be tercijos. Modalinės old-time melodijos.",
+        about_en: "Sawmill or Cross G: the open strings ring G5, no third. Modal old-time tunes." },
+      { id: "aeae", name: "AEAE", n: "A3 E4 A4 E5",
+        about: "Cross A: atviros stygos skamba A5. Smuikininkų ir mandolinininkų derinimas A tonacijai.",
+        about_en: "Cross A: the open strings ring A5. The fiddlers’ and mandolinists’ tuning for the key of A." } ] },
+    { lt: "Atviri (Open)", en: "Open", t: [
+      { id: "openg", name: "Open G", n: "G3 D4 G4 B4",
+        about: "Atviros stygos skamba G akordu. Slide mandolina, old-time.",
+        about_en: "The open strings ring a G chord. Slide mandolin, old-time." } ] },
+    { lt: "Mandolinų šeima", en: "Mandolin family", t: [
+      { id: "mandola", name: "Mandola", n: "C3 G3 D4 A4",
+        about: "Didesnė mandolinos sesuo, suderinta kaip altas: kvinta žemiau. Formos tos pačios, viskas tik kvinta žemiau.",
+        about_en: "The mandolin’s bigger sister, tuned like a viola: a fifth lower. The same shapes, everything a fifth down." },
+      { id: "octave", name: "Octave mandolin", n: "G2 D3 A3 E4",
+        about: "Oktavinė mandolina: tos pačios natos oktava žemiau. Tas pats derinimas kaip airiškos tenorinės bandžos.",
+        about_en: "The octave mandolin: the same notes an octave lower. Also the Irish tenor banjo tuning." } ] }
+  ] },
+  b4: { lt: "4 stygų bosinė gitara", en: "4-string bass", btn: "4 st.", btn_en: "4-string", kind: "bass", base: 5, groups: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
+      { id: "std", name: "Standard", n: "E1 A1 D2 G2",
+        about: "Keturios žemiausios gitaros stygos oktava žemiau. Visos gitaros formos tinka, tik be dviejų viršutinių stygų.",
+        about_en: "The guitar’s four low strings an octave lower. Every guitar shape works, minus the two top strings." },
+      { id: "eb", name: "E♭ Standard", n: "E♭1 A♭1 D♭2 G♭2",
+        about: "Visos stygos pustoniu žemiau, kaip ir gitaristai E♭ derinime.",
+        about_en: "Every string a half step lower, to match guitarists in E♭." },
+      { id: "dstd", name: "D Standard", n: "D1 G1 C2 F2",
+        about: "Visos stygos tonu žemiau. Formos tos pačios.",
+        about_en: "Every string a whole step lower. The same shapes." } ] },
+    { lt: "Drop", en: "Drop", t: [
+      { id: "dropd", name: "Drop D", n: "D1 A1 D2 G2",
+        about: "Žemiausia styga nuleista į D: žemesnė D nata ir kvintos ant dviejų žemųjų stygų vienu pirštu.",
+        about_en: "The low string drops to D: a lower D, and fifths on the two low strings under one finger." },
+      { id: "dropc", name: "Drop C", n: "C1 G1 C2 F2",
+        about: "D Standard ir nuleista žemiausia styga. Sunkusis rokas ir metalas.",
+        about_en: "D Standard with the low string dropped. Heavy rock and metal." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "bead", name: "BEAD", n: "B0 E1 A1 D2",
+        about: "Penkiastygio boso apatinės keturios stygos keturiose: žemoji B vietoj G.",
+        about_en: "A five-string’s bottom four on four strings: a low B instead of the G." },
+      { id: "tenor", name: "Tenor (ADGC)", n: "A1 D2 G2 C3",
+        about: "Kvarta aukščiau: daugiau vietos melodijai ir akordams, mažiau gylio.",
+        about_en: "A fourth higher: more room for melody and chords, less depth." },
+      { id: "fifths", name: "Fifths (CGDA)", n: "C1 G1 D2 A2",
+        about: "Kvintomis, kaip violončelė: platesnis diapazonas, kitokios formos. Taip kontrabosą derino Redas Mitchellas.",
+        about_en: "In fifths, like a cello: a wider range and different shapes. Red Mitchell tuned his double bass this way." } ] }
+  ] },
+  b5: { lt: "5 stygų bosinė gitara", en: "5-string bass", btn: "5 st.", btn_en: "5-string", kind: "bass", base: 5, groups: [
+    { lt: "Standartas", en: "Standard", t: [
+      { id: "std", name: "Standard", n: "B0 E1 A1 D2 G2",
+        about: "Keturstygis bosas ir dar žemoji B apačioje. Šiuolaikinis popsas, gospel, metalas.",
+        about_en: "A four-string with a low B underneath. Modern pop, gospel, metal." } ] },
+    { lt: "Drop", en: "Drop", t: [
+      { id: "dropa", name: "Drop A", n: "A0 E1 A1 D2 G2",
+        about: "Žemoji B nuleista į A: žemiausia nata ir kvinta vienu pirštu ant dviejų apatinių stygų.",
+        about_en: "The low B drops to A: the lowest note, and a fifth under one finger on the two low strings." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "tenor", name: "Tenor (EADGC)", n: "E1 A1 D2 G2 C3",
+        about: "Vietoj žemosios B viršuje aukštoji C: daugiau melodijai ir akordams.",
+        about_en: "A high C on top instead of the low B: more room for melody and chords." } ] }
+  ] },
+  b6: { lt: "6 stygų bosinė gitara", en: "6-string bass", btn: "6 st.", btn_en: "6-string", kind: "bass", base: 5, groups: [
+    { lt: "Standartas", en: "Standard", t: [
+      { id: "std", name: "Standard", n: "B0 E1 A1 D2 G2 C3",
+        about: "Žemoji B ir aukštoji C: visas boso diapazonas ir dar vieta akordams bei solo. Džiazas, fusion.",
+        about_en: "A low B and a high C: the full bass range plus room for chords and solos. Jazz and fusion." } ] },
+    { lt: "Drop", en: "Drop", t: [
+      { id: "dropa", name: "Drop A", n: "A0 E1 A1 D2 G2 C3",
+        about: "Žemoji B nuleista į A.",
+        about_en: "The low B drops to A." } ] }
+  ] },
+  tg: { lt: "Tenorinė gitara", en: "Tenor guitar", btn: "Tenorinė", btn_en: "Tenor", kind: "guitar", base: 7, groups: [
+    { lt: "Standartas", en: "Standard", t: [
+      { id: "std", name: "Standard (CGDA)", n: "C3 G3 D4 A4",
+        about: "Keturios stygos kvintomis, kaip tenorinės bandžos ir mandolos. Džiazas ir diksilendas.",
+        about_en: "Four strings in fifths, like the tenor banjo and the mandola. Jazz and Dixieland." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "irish", name: "Irish (GDAE)", n: "G2 D3 A3 E4",
+        about: "Kvinta žemiau, kaip airiška tenorinė bandža: smuiko melodijos oktava žemiau.",
+        about_en: "A fifth lower, like the Irish tenor banjo: fiddle tunes an octave down." },
+      { id: "chicago", name: "Chicago (DGBE)", n: "D3 G3 B3 E4",
+        about: "Keturios viršutinės gitaros stygos: visos gitaros formos tinka iškart.",
+        about_en: "The guitar’s top four strings: every guitar shape works straight away." } ] }
+  ] },
+  uke: { lt: "Ukulelė", en: "Ukulele", btn: "Ukulelė", btn_en: "Ukulele", kind: "uke", base: 5, groups: [
+    { lt: "Standartas ir aukštesni", en: "Standard and raised", t: [
+      { id: "std", name: "Standard (High G)", n: "G4 C4 E4 A4",
+        about: "Re-entrant derinimas: G styga aukštesnė už C, todėl žemiausia nata yra C, o ne G. Formos todėl grojamos pozicijomis, ne styga po stygos.",
+        about_en: "A re-entrant tuning: the G string is higher than the C, so the lowest note is C, not G. That is why the shapes are positions, not string after string." },
+      { id: "dtun", name: "D tuning", n: "A4 D4 F♯4 B4",
+        about: "Visos stygos tonu aukščiau: senoji soprano ukulelės derinimo tradicija. Formos tos pačios.",
+        about_en: "Every string a whole step higher: the old soprano ukulele tradition. The same shapes." } ] },
+    { lt: "Viena styga", en: "One string", t: [
+      { id: "lowg", name: "Low G", n: "G3 C4 E4 A4",
+        about: "G styga oktava žemiau: derinimas tampa tiesinis, kaip keturių viršutinių gitaros stygų tarpai, ir atsiranda žemų natų.",
+        about_en: "The G string an octave lower: the tuning becomes linear, with the gaps of a guitar’s top four strings, and low notes appear." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "bari", name: "Baritone (DGBE)", n: "D3 G3 B3 E4",
+        about: "Baritoninė ukulelė: keturios viršutinės gitaros stygos. Gitaristams viskas pažįstama.",
+        about_en: "The baritone ukulele: a guitar’s top four strings. Familiar ground for guitarists." } ] }
+  ] },
+  banjo: { lt: "5 stygų bandža", en: "5-string banjo", btn: "Bandža (5 st.)", btn_en: "5-string banjo", kind: "banjo", base: 5, groups: [
+    { lt: "Standartas", en: "Standard", t: [
+      { id: "std", name: "Open G", n: "G4/5 D3 G3 B3 D4",
+        about: "Atviros stygos skamba G akordu. 5-oji styga trumpa, prasideda ties 5 ladu ir derinama aukštai (g): ji skamba kaip nuolatinis tonas (drone). Bluegrass, Earl Scruggs.",
+        about_en: "The open strings ring a G chord. The 5th string is short, starts at fret 5 and is tuned high (g): it rings as a drone. Bluegrass, Earl Scruggs." } ] },
+    { lt: "Viena–dvi stygos", en: "One or two strings", t: [
+      { id: "gmodal", name: "G Modal", n: "G4/5 D3 G3 C4 D4",
+        about: "B pakelta į C: atviros stygos be tercijos, nei mažoras, nei minoras. Old-time (Sawmill, Mountain Minor).",
+        about_en: "B raised to C: no third in the open strings, neither major nor minor. Old-time (Sawmill, Mountain Minor)." },
+      { id: "dropc", name: "Drop C", n: "G4/5 C3 G3 B3 D4",
+        about: "4-oji styga nuleista į C: C tonacijai.",
+        about_en: "The 4th string drops to C: for the key of C." },
+      { id: "doublec", name: "Double C", n: "G4/5 C3 G3 C4 D4",
+        about: "4-oji nuleista, 2-oji pakelta į C: dvi C stygos. Mėgstamiausias clawhammer derinimas.",
+        about_en: "The 4th dropped and the 2nd raised to C: two C strings. A clawhammer favourite." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "opend", name: "Open D", n: "F♯4/5 D3 F♯3 A3 D4",
+        about: "Atviros stygos skamba D akordu, 5-oji styga F♯.",
+        about_en: "The open strings ring a D chord, with the 5th string on F♯." } ] }
+  ] },
+  tbanjo: { lt: "Tenorinė bandža", en: "Tenor banjo", btn: "Tenorinė bandža", btn_en: "Tenor banjo", kind: "banjo", base: 7, groups: [
+    { lt: "Standartas", en: "Standard", t: [
+      { id: "std", name: "Standard (CGDA)", n: "C3 G3 D4 A4",
+        about: "Keturios stygos kvintomis. Džiazas ir diksilendas.",
+        about_en: "Four strings in fifths. Jazz and Dixieland." } ] },
+    { lt: "Kiti", en: "Other", t: [
+      { id: "irish", name: "Irish (GDAE)", n: "G2 D3 A3 E4",
+        about: "Kvinta žemiau, smuiko natos oktava žemiau: airių muzikos derinimas.",
+        about_en: "A fifth lower, the fiddle’s notes an octave down: the Irish music tuning." } ] }
+  ] },
+  bouz: { lt: "Buzukis", en: "Bouzouki", btn: "Buzukis", btn_en: "Bouzouki", kind: "bouz", base: 7, crs: "uuuu", groups: [
+    { lt: "Airiški", en: "Irish", t: [
+      { id: "std", name: "GDAD", n: "G2 D3 A3 D4",
+        about: "Airiškas buzukis: dažniausias derinimas. Kvintos ir viršuje kvarta; atviros D stygos gerai skamba kaip drone.",
+        about_en: "The Irish bouzouki’s most common tuning. Fifths with a fourth on top; the open D strings make a good drone." },
+      { id: "gdae", name: "GDAE", n: "G2 D3 A3 E4",
+        about: "Oktavinės mandolinos derinimas: mandolinos ir smuiko formos oktava žemiau.",
+        about_en: "The octave mandolin tuning: mandolin and fiddle shapes an octave lower." },
+      { id: "adad", name: "ADAD", n: "A2 D3 A3 D4",
+        about: "Atviros stygos skamba D5, be tercijos: modalinis, nei mažoras, nei minoras.",
+        about_en: "The open strings ring D5, no third: modal, neither major nor minor." },
+      { id: "gdgd", name: "GDGD", n: "G2 D3 G3 D4",
+        about: "Atviros stygos skamba G5. Tinka slide grojimui.",
+        about_en: "The open strings ring G5. Good for slide." } ] },
+    { lt: "Graikiškas", en: "Greek", t: [
+      { id: "cfad", name: "CFAD", n: "C3 F3 A3 D4", crs: "88uu",
+        about: "Graikiškas tetrachordo buzukis: kaip keturios viršutinės gitaros stygos tonu žemiau, apatinės dvi poros oktavomis. Rebetiko, laïkó.",
+        about_en: "The Greek tetrachordo: like a guitar’s top four strings a whole step down, the two low courses in octaves. Rebetiko and laïkó." } ] }
+  ] }
+};
+/* 12-string: the 6-string's notes, the four low courses with an octave string, the two top ones doubled in unison */
+{
+  const g6 = id => INSTR.g6.groups.flatMap(g => g.t).find(t => t.id === id);
+  INSTR.g12 = { lt: "12 stygų gitara", en: "12-string guitar", btn: "12 st.", btn_en: "12-string", kind: "guitar", base: 5, crs: "8888uu", groups: [
+    { lt: "Standartas ir žemesni", en: "Standard and lowered", t: [
+      Object.assign({}, g6("std"), { about: "Natos ir formos kaip 6 stygų gitaros, bet kiekviena styga dviguba: keturios apatinės su plona styga oktava aukščiau, dvi viršutinės unisonu. Skambesį daro poros.",
+        about_en: "The notes and shapes of a 6-string, but every string is a pair: the four low ones with a thin string an octave up, the top two in unison. The pairs make the sound." }),
+      g6("eb"), g6("dstd") ] },
+    { lt: "Atviri ir modaliniai", en: "Open and modal", t: [g6("openg"), g6("opend"), g6("dadgad")] }
+  ] };
+}
+/* the instrument picker, grouped */
+const INST_GROUPS = [
+  { lt: "Gitara", en: "Guitar", i: ["g6", "g7", "g8", "g12", "tg"] },
+  { lt: "Bosinė gitara", en: "Bass guitar", i: ["b4", "b5", "b6"] },
+  { lt: "Ukulelė ir bandža", en: "Ukulele and banjo", i: ["uke", "banjo", "tbanjo"] },
+  { lt: "Mandolina ir buzukis", en: "Mandolin and bouzouki", i: ["mando", "bouz"] }
+];
+const PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+/* "F♯1" → { name: "F♯", midi: 30 }; "G4/5" is a short string that starts at fret 5 (the banjo's 5th):
+   it counts as a full string tuned 5 half steps lower that has no frets below 5 */
+const parseNote = t => {
+  const m = /^([A-G])([♯♭]?)(-?\d)(?:\/(\d+))?$/.exec(t), from = m[4] ? +m[4] : 0;
+  return { name: m[1] + m[2], from, midi: 12 * (+m[3] + 1) + PC[m[1]] + (m[2] === "♯" ? 1 : m[2] === "♭" ? -1 : 0) - from };
+};
+const tunings = inst => INSTR[inst].groups.flatMap(g => g.t);
+const tuningOf = (inst, id) => tunings(inst).find(t => t.id === id) || tunings(inst)[0];
+/* strings top (highest, string 1) to bottom, as the fretboard and the tab show them */
+const openOf = t => t.n.split(" ").map(parseNote).reverse();
+
+/* current instrument: OPEN = open-string MIDI notes, SN = their names, N = number of strings */
+let OPEN = [64, 59, 55, 50, 45, 40], SN = ["e", "B", "G", "D", "A", "E"], N = 6, STD = OPEN, INST = INSTR.g6, TUN = INSTR.g6.groups[0].t[0];
+/* MINF: first fret a string has (5 for the banjo's short string, else 0); CRS: per string "u" unison pair, "8" octave pair, "" single;
+   REENT: some string is higher than the one above it (ukulele high G, banjo g); LOWS: the lowest-pitched full string;
+   BASS2: the two lowest-pitched full strings, where the Root rows look */
+let MINF = [0, 0, 0, 0, 0, 0], CRS = ["", "", "", "", "", ""], REENT = false, LOWS = 5, BASS2 = [5, 4];
+const openAt = s => OPEN[s] + MINF[s];                       /* the pitch the string really rings open */
+const fd = (s, f) => MINF[s] && f === MINF[s] ? 0 : f;     /* fret as tab writes it: the short string's open note is 0 */
 const MAXF = 17;
 const SHARP = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
 const FLAT  = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
@@ -619,7 +958,7 @@ const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
 const SET = () => { const st = SETS[S.set], o = ctxOf(st, S.q); return o ? Object.assign({}, st, o) : st; };
 
 /* ---------- state */
-const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names" };
+const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", inst: "g6", tun: "std" };
 const S = Object.assign({}, DEF);
 try {
   const v = JSON.parse(localStorage.getItem("lempinio-solo-v1") || "null");
@@ -635,6 +974,24 @@ function fixSet() {
   S.set = list.includes(QMAP[S.set]) ? QMAP[S.set] : list[0];
 }
 fixSet();
+/* the chosen instrument and tuning become OPEN / SN / N; STD is the same instrument in its standard tuning */
+function applyTuning() {
+  if (!INSTR[S.inst]) S.inst = "g6";
+  INST = INSTR[S.inst]; TUN = tuningOf(S.inst, S.tun); S.tun = TUN.id;
+  const o = openOf(TUN);
+  OPEN = o.map(x => x.midi); N = OPEN.length; MINF = o.map(x => x.from);
+  STD = openOf(tunings(S.inst)[0]).map(x => x.midi);
+  const c = (TUN.crs || INST.crs || "").split("").reverse();
+  CRS = OPEN.map((_, s) => c[s] || "");
+  REENT = OPEN.some((_, s) => s > 0 && openAt(s) >= openAt(s - 1));
+  const full = OPEN.map((_, s) => s).filter(s => !MINF[s]).sort((a, b) => OPEN[a] - OPEN[b] || b - a);
+  LOWS = full[0]; BASS2 = full.slice(0, 2);
+  /* guitar habit: the top string in lower case (e B G D A E); the banjo's short string too (g) */
+  SN = o.map((x, i) => (i === 0 && INST.kind === "guitar") || x.from ? x.name.toLowerCase() : x.name);
+  const w = Math.max(...SN.map(n => n.length));
+  SN = SN.map(n => n.padEnd(w));
+}
+applyTuning();
 function save() { try { localStorage.setItem("lempinio-solo-v1", JSON.stringify(S)); } catch (e) {} }
 
 const chordIvs = () => CH[S.q].tones.map(t => t[0]);
@@ -665,21 +1022,33 @@ function degMap() {
 /* ---------- forms
    Scales: form k starts on the k-th scale note on the low E string and climbs the scale string by string:
    2 notes per string for 5- and 6-note scales, 3 per string for 7- and 8-note scales; as many forms as notes.
-   Arpeggio: a 5-fret position starting on each chord tone of the low E string (3 or 4 forms).
+   Wider or narrower gaps between strings (drop, open tunings, the mandolin's fifths) scale the notes per string.
+   Arpeggio: a 5-fret position starting on each chord tone of the lowest string (3 or 4 forms).
    Interval pairs: one "form" per string pair, with every pair whose lower note is the Root. */
 const shape = strings => { const all = strings.flat(); return { strings, min: Math.min(...all), max: Math.max(...all) }; };
+/* a form that does not fit the neck in this tuning is dropped; the rest are numbered again */
+const renumber = list => list.filter(F => F.inst.length).map((F, k) => Object.assign(F, { k, label: String(k + 1) }));
+/* notes per string: n across a fourth or a major third (standard guitar); a wider or narrower gap to the next string
+   scales it (a fifth on the mandolin or the dropped string gets more notes, a whole step fewer) */
+function npsOf(n) {
+  return OPEN.map((_, s) => {
+    const g = s > 0 ? OPEN[s - 1] - OPEN[s] : OPEN[0] - OPEN[1];
+    return g === 4 || g === 5 ? n : Math.max(1, Math.round(n * g / 5));
+  });
+}
 function scaleForms(st) {
-  const r = S.root, P = st.deg.map(d => d[0]), n = P.length <= 6 ? 2 : 3, pitches = [];
-  for (let m = 40; m <= 110; m++) if (P.includes(mod(m - r))) pitches.push(m);
-  return P.map((iv, k) => {
-    const m0 = 40 + mod(r + iv - 4), inst = [];
+  if (REENT) return posForms(st.deg.map(d => d[0]));
+  const r = S.root, P = st.deg.map(d => d[0]), nps = npsOf(P.length <= 6 ? 2 : 3), pitches = [], low = N - 1;
+  for (let m = OPEN[low]; m <= OPEN[0] + MAXF + 12; m++) if (P.includes(mod(m - r))) pitches.push(m);
+  return renumber(P.map((iv, k) => {
+    const m0 = OPEN[low] + mod(r + iv - OPEN[low]), inst = [];
     for (const off of [0, 12]) {
-      const i0 = pitches.indexOf(m0 + off); if (i0 < 0) continue;
+      let i = pitches.indexOf(m0 + off); if (i < 0) continue;
       const strings = []; let ok = true;
-      for (let s = 5; s >= 0 && ok; s--) {
+      for (let s = low; s >= 0 && ok; s--) {
         const fr = [];
-        for (let t = 0; t < n; t++) {
-          const p = pitches[i0 + (5 - s) * n + t], f = p - OPEN[s];
+        for (let t = 0; t < nps[s]; t++, i++) {
+          const p = pitches[i], f = p - OPEN[s];
           if (p === undefined || f < 0 || f > MAXF) { ok = false; break; }
           fr.push(f);
         }
@@ -687,34 +1056,44 @@ function scaleForms(st) {
       }
       if (ok) inst.push(shape(strings));
     }
-    return { k, label: String(k + 1), inst };
-  });
+    return { k, inst };
+  }));
 }
-function arpForms() {
-  const r = S.root, T = chordIvs();
-  return T.map((iv, k) => {
+/* a 5-fret position starting on each of the notes on the lowest-pitched string: the arpeggio shapes, and the scale
+   shapes of a re-entrant tuning, where "string after string" makes no sense (a ukulele's G sits above its C) */
+function posForms(T) {
+  const r = S.root, low = LOWS;
+  return renumber(T.map((iv, k) => {
     const inst = [];
     for (const off of [0, 12]) {
-      const a = Math.max(0, mod(r + iv - 4) + off - 1), b = a + 4;
+      const a = Math.max(0, mod(r + iv - OPEN[low]) + off - 1), b = a + 4;
       if (b > MAXF) continue;
       const strings = [];
-      for (let s = 0; s < 6; s++) {
+      for (let s = 0; s < N; s++) {
         strings[s] = [];
-        for (let f = a; f <= b; f++) if (T.includes(mod(OPEN[s] + f - r))) strings[s].push(f);
+        for (let f = Math.max(a, MINF[s]); f <= b; f++) if (T.includes(mod(OPEN[s] + f - r))) strings[s].push(f);
       }
       inst.push(shape(strings));
     }
-    return { k, label: String(k + 1), inst };
-  });
+    return { k, inst };
+  }));
 }
+const arpForms = () => posForms(chordIvs());
+/* string pairs, low to high: the neighbouring string if the second note lies within 4 frets, else the string after it
+   (octaves on a guitar skip a string; a fifth in fifths tuning is the same fret on the next string) */
 function pairForms(st) {
-  const r = S.root;
-  return st.pairs.map(([s1, s2], k) => {
+  const r = S.root, out = [];
+  for (let s1 = N - 1; s1 > 0; s1--) {
+    if (MINF[s1]) continue;
+    /* the upper string must be a full one and really higher (not a re-entrant G) */
+    const s2 = [s1 - 1, s1 - 2].find(t => t >= 0 && !MINF[t] && OPEN[t] > OPEN[s1] && Math.abs(st.iv - (OPEN[t] - OPEN[s1])) <= 4);
+    if (s2 == null) continue;
     const d = st.iv - (OPEN[s2] - OPEN[s1]), pairs = [];
     for (let f = 0; f <= MAXF; f++)
       if (mod(OPEN[s1] + f - r) === 0 && f + d >= 0 && f + d <= MAXF) pairs.push({ s1, f1: f, s2, f2: f + d });
-    return { k, label: `${s1 + 1}–${s2 + 1}`, pairs, d, s1, s2 };
-  });
+    out.push({ k: out.length, label: `${s1 + 1}–${s2 + 1}`, pairs, d, s1, s2 });
+  }
+  return out;
 }
 function forms() {
   const st = SET();
@@ -746,36 +1125,49 @@ function inSel(s, f, cat) {
 function boxPath(I) {
   const p = 16, lo = [], hi = [];
   /* a string with no note in an arpeggio position borrows the neighbour's edge */
-  for (let s = 0; s < 6; s++) {
+  for (let s = 0; s < N; s++) {
     const fr = I.strings[s];
     lo[s] = fr.length ? nx(fr[0]) - p : null; hi[s] = fr.length ? nx(fr[fr.length - 1]) + p : null;
   }
-  for (let s = 0; s < 6; s++) if (lo[s] == null) {
-    const nb = [s - 1, s + 1].filter(t => t >= 0 && t < 6 && lo[t] != null);
+  for (let s = 0; s < N; s++) if (lo[s] == null) {
+    const nb = [s - 1, s + 1].filter(t => t >= 0 && t < N && lo[t] != null);
     lo[s] = Math.min(...nb.map(t => lo[t])); hi[s] = Math.max(...nb.map(t => hi[t]));
   }
   let d = `M${lo[0].toFixed(1)},${sy(0) - p}`;
-  for (let s = 0; s < 6; s++) d += ` L${lo[s].toFixed(1)},${sy(s)}`;
-  d += ` L${lo[5].toFixed(1)},${sy(5) + p} L${hi[5].toFixed(1)},${sy(5) + p}`;
-  for (let s = 5; s >= 0; s--) d += ` L${hi[s].toFixed(1)},${sy(s)}`;
+  for (let s = 0; s < N; s++) d += ` L${lo[s].toFixed(1)},${sy(s)}`;
+  d += ` L${lo[N - 1].toFixed(1)},${sy(N - 1) + p} L${hi[N - 1].toFixed(1)},${sy(N - 1) + p}`;
+  for (let s = N - 1; s >= 0; s--) d += ` L${hi[s].toFixed(1)},${sy(s)}`;
   return d + ` L${hi[0].toFixed(1)},${sy(0) - p} Z`;
 }
 
 function drawBoard() {
   const map = degMap();
   const o = [];
-  o.push(`<rect class="fb-wood" x="${NUT}" y="${sy(0) - 16}" width="${END - NUT}" height="${GAP * 5 + 32}" rx="2"/>`);
-  for (const f of [3, 5, 7, 9, 15, 17]) o.push(`<circle class="inlay" cx="${nx(f)}" cy="${(sy(2) + sy(3)) / 2}" r="5"/>`);
-  o.push(`<circle class="inlay" cx="${nx(12)}" cy="${(sy(1) + sy(2)) / 2}" r="5"/><circle class="inlay" cx="${nx(12)}" cy="${(sy(3) + sy(4)) / 2}" r="5"/>`);
-  for (let f = 1; f <= MAXF; f++) o.push(`<line class="fret" x1="${fx(f)}" x2="${fx(f)}" y1="${sy(0) - 16}" y2="${sy(5) + 16}"/>`);
-  o.push(`<rect class="nut" x="${NUT - 3}" y="${sy(0) - 16}" width="6" height="${GAP * 5 + 32}" rx="1.5"/>`);
-  for (let s = 0; s < 6; s++) {
-    o.push(`<line class="str" x1="${NUT - 40}" x2="${END}" y1="${sy(s)}" y2="${sy(s)}" stroke-width="${(0.7 + s * 0.38).toFixed(2)}"/>`);
-    o.push(`<text class="sname" x="14" y="${sy(s)}" dy=".35em">${SN[s]}</text>`);
+  const H = sy(N - 1) + 46, mid = (sy(0) + sy(N - 1)) / 2, folk = ["mando", "uke", "banjo", "bouz"].includes(INST.kind);
+  $("fb").setAttribute("viewBox", `0 0 ${W} ${H}`);
+  o.push(`<rect class="fb-wood" x="${NUT}" y="${sy(0) - 16}" width="${END - NUT}" height="${GAP * (N - 1) + 32}" rx="2"/>`);
+  /* inlays: mandolins, ukuleles, banjos and bouzoukis have a dot at 10 instead of 9 */
+  const DOTS = folk ? [3, 5, 7, 10, 15, 17] : [3, 5, 7, 9, 15, 17];
+  for (const f of DOTS) o.push(`<circle class="inlay" cx="${nx(f)}" cy="${mid}" r="5"/>`);
+  o.push(`<circle class="inlay" cx="${nx(12)}" cy="${mid - GAP}" r="5"/><circle class="inlay" cx="${nx(12)}" cy="${mid + GAP}" r="5"/>`);
+  for (let f = 1; f <= MAXF; f++) o.push(`<line class="fret" x1="${fx(f)}" x2="${fx(f)}" y1="${sy(0) - 16}" y2="${sy(N - 1) + 16}"/>`);
+  o.push(`<rect class="nut" x="${NUT - 3}" y="${sy(0) - 16}" width="6" height="${GAP * (N - 1) + 32}" rx="1.5"/>`);
+  for (let s = 0; s < N; s++) {
+    /* thickness follows the pitch (a ukulele's high G is thin even at the bottom); a course is a pair of strings:
+       two alike for a unison pair, a thick and a thin one for an octave pair; the banjo's short string starts at its peg */
+    const lowP = Math.min(...OPEN), hiP = Math.max(...OPEN.map((m, i) => m + MINF[i]));
+    const sw = REENT || INST.kind === "bass" ? (0.7 + 2.1 * (hiP - openAt(s)) / Math.max(1, hiP - lowP)).toFixed(2) : (0.7 + s * 0.38 * 5 / Math.max(5, N - 1)).toFixed(2);
+    const x1 = MINF[s] ? nx(MINF[s]) - 16 : NUT - 40;
+    const line = (dy, w) => `<line class="str" x1="${x1}" x2="${END}" y1="${sy(s) + dy}" y2="${sy(s) + dy}" stroke-width="${w}"/>`;
+    if (CRS[s] === "u") o.push(line(-2.2, (sw * .7).toFixed(2)), line(2.2, (sw * .7).toFixed(2)));
+    else if (CRS[s] === "8") o.push(line(-2.4, ".55"), line(2.2, (sw * .85).toFixed(2)));
+    else o.push(line(0, sw));
+    if (MINF[s]) o.push(`<circle class="peg" cx="${x1}" cy="${sy(s)}" r="3.2"/>`);
+    o.push(`<text class="sname${STD[s] !== OPEN[s] ? " chg" : ""}" x="14" y="${sy(s)}" dy=".35em">${SN[s].trim()}</text>`);
   }
   for (let f = 0; f <= MAXF; f++) {
-    const mk = [3, 5, 7, 9, 12, 15, 17].includes(f);
-    o.push(`<text class="fnum${mk ? " mk" : ""}" x="${nx(f)}" y="${sy(5) + 36}">${f}</text>`);
+    const mk = (folk ? [3, 5, 7, 10, 12, 15, 17] : [3, 5, 7, 9, 12, 15, 17]).includes(f);
+    o.push(`<text class="fnum${mk ? " mk" : ""}" x="${nx(f)}" y="${sy(N - 1) + 36}">${f}</text>`);
   }
   if (S.group && isPair()) {
     /* interval pairs: a bar joining the two notes played together */
@@ -803,7 +1195,7 @@ function drawBoard() {
       o.push(`<g class="blab b${l.k}${l.sel ? " sel" : ""}" data-box="${l.k}"><circle cx="${lx}" cy="${y}" r="11"/><text x="${lx}" y="${y}" dy=".36em">${l.k + 1}</text></g>`);
     }
   }
-  for (let s = 0; s < 6; s++) for (let f = 0; f <= MAXF; f++) {
+  for (let s = 0; s < N; s++) for (let f = MINF[s]; f <= MAXF; f++) {
     const pc = mod(OPEN[s] + f), iv = mod(pc - S.root), d = map.get(iv);
     if (!d) continue;
     const lab = S.labels === "ints" ? d.l : d.name;
@@ -828,10 +1220,9 @@ function fretsOf(pcOpen) {
 const row = (b, fr, sub) => `<div class="jrow"><b>${b}</b><span class="fr">${fr}</span><span class="sub">${sub}</span></div>`;
 const pick = (k, t) => `<button data-pick="${k}">${t}</button>`;
 function rootRows() {
-  const k6 = rootBoxOn(5), k5 = rootBoxOn(4);
-  const r = (s, k, f) => row(T(`Root ${s}-oje stygoje`, `Root on string ${s}`), fretsOf(f),
-    T(`Root: ${pick(k, `${k + 1} forma`)}, ${boxRange(k)} ladai`, `Root: ${pick(k, `shape ${k + 1}`)}, frets ${boxRange(k)}`));
-  return r(6, k6, 4) + r(5, k5, 9);
+  const r = s => { const k = rootBoxOn(s); return row(T(`Root ${s + 1}-oje stygoje`, `Root on string ${s + 1}`), fretsOf(mod(OPEN[s])),
+    T(`Root: ${pick(k, `${k + 1} forma`)}, ${boxRange(k)} ladai`, `Root: ${pick(k, `shape ${k + 1}`)}, frets ${boxRange(k)}`)); };
+  return BASS2.map(r).join("");
 }
 function drawAbout() {
   const st = SET(), r = S.root, q = S.q, map = degMap();
@@ -853,15 +1244,20 @@ function drawAbout() {
     }
     h += rootRows();
   } else if (st.kind === "arp") {
-    h += row(T("Akordo natos", "Chord tones"), chordNotes().join(" "), T(`${B.length} formos: kiekviena prasideda nuo vis kitos akordo natos 6-oje stygoje.`, `${B.length} shapes: each starts on a different chord tone on string 6.`));
+    h += row(T("Akordo natos", "Chord tones"), chordNotes().join(" "), T(`${B.length} formos: kiekviena prasideda nuo vis kitos akordo natos ${LOWS + 1}-oje stygoje.`, `${B.length} shapes: each starts on a different chord tone on string ${LOWS + 1}.`));
     h += rootRows();
   } else {
     for (const F of B) {
-      const bString = (F.s2 === 1 && F.s1 === 2) || (st.iv === 12 && F.s2 <= 1);
+      /* a gap between the strings other than the instrument's usual one moves the second note */
+      const gap = OPEN[F.s2] - OPEN[F.s1], usual = (F.s1 - F.s2) * INST.base, x = usual - gap;
       const how = F.d === 0 ? T("Antroji nata tame pačiame lade.", "The second note is on the same fret.")
-        : T(`Antroji nata ${F.d} ${F.d === 1 ? "ladu" : "ladais"} aukščiau.`, `The second note is ${F.d} fret${F.d === 1 ? "" : "s"} higher.`);
-      h += row(pick(F.k, T(`${F.label} stygos`, `Strings ${F.label}`)), F.d > 0 ? `+${F.d}` : `${F.d}`,
-        how + (bString ? T(" B styga suderinta kitaip, todėl vienu ladu daugiau.", " The B string is tuned differently, hence one fret more.") : ""));
+        : F.d > 0 ? T(`Antroji nata ${F.d} ${F.d === 1 ? "ladu" : "ladais"} aukščiau.`, `The second note is ${F.d} fret${F.d === 1 ? "" : "s"} higher.`)
+        : T(`Antroji nata ${-F.d} ${F.d === -1 ? "ladu" : "ladais"} žemiau.`, `The second note is ${-F.d} fret${F.d === -1 ? "" : "s"} lower.`);
+      const odd = !x ? "" : INST.kind === "guitar" && TUN.id === "std" && x === 1
+        ? T(" B styga suderinta kitaip, todėl vienu ladu daugiau.", " The B string is tuned differently, hence one fret more.")
+        : T(` Tarp šių stygų ${Math.abs(x)} ${Math.abs(x) === 1 ? "pustoniu" : "pustoniais"} ${x > 0 ? "mažiau" : "daugiau"} nei įprasta, todėl ${Math.abs(x)} ${Math.abs(x) === 1 ? "ladu" : "ladais"} ${x > 0 ? "daugiau" : "mažiau"}.`,
+            ` These strings are ${Math.abs(x)} half step${Math.abs(x) === 1 ? "" : "s"} ${x > 0 ? "closer" : "further apart"} than usual, hence ${Math.abs(x)} fret${Math.abs(x) === 1 ? "" : "s"} ${x > 0 ? "more" : "less"}.`);
+      h += row(pick(F.k, T(`${F.label} stygos`, `Strings ${F.label}`)), F.d > 0 ? `+${F.d}` : `${F.d}`, how + odd);
     }
   }
   $("jam").innerHTML = h;
@@ -897,9 +1293,9 @@ function formNotes() {
   const k = formSel() ? S.box : 0, F = B[k];
   if (isPair()) return F.pairs.map(p => [[p.s1, p.f1], [p.s2, p.f2]]);
   const I = F.inst[0], map = degMap(), out = [];
-  for (let s = 5; s >= 0; s--) {
+  for (let s = N - 1; s >= 0; s--) {
     const fr = I.strings[s];
-    for (let f = Math.max(0, I.min - 1); f <= I.max + 1; f++) {
+    for (let f = Math.max(MINF[s], I.min - 1); f <= I.max + 1; f++) {
       const d = map.get(mod(OPEN[s] + f - S.root)); if (!d) continue;
       const ok = d.c === "blue" ? fr.length && f >= fr[0] - 1 && f <= fr[fr.length - 1] + 1 : fr.includes(f);
       if (ok) out.push([s, f, d.c]);
@@ -909,7 +1305,7 @@ function formNotes() {
 }
 function drawTab() {
   const k = formSel() ? S.box : 0, F = B[k], map = degMap();
-  const cell = (s, f) => { const c = map.get(mod(OPEN[s] + f - S.root)).c, t = f + (c === "root" ? "*" : ""); return { t, c }; };
+  const cell = (s, f) => { const c = map.get(mod(OPEN[s] + f - S.root)).c, t = fd(s, f) + (c === "root" ? "*" : ""); return { t, c }; };
   const span = ({ t, c }, w) => `<span class="t-${c}">${t}</span>` + "-".repeat(w - t.length);
   let rows;
   if (isPair()) {
@@ -958,21 +1354,27 @@ function chordAt(lo, hi) {
   const T = chordIvs(), r = S.root;
   /* tones that may be left out: given per chord type, else the 5 of a chord with four or more notes */
   const opt = CH[S.q].opt || (T.length > 3 && T.includes(7) ? [7] : []);
+  /* at least 4 strings (3 on a four-string instrument); more than 6 strings earn nothing extra.
+     The banjo's short string stays out of the grip: it rings open on its own (addDrone) */
+  const P = MINF.filter(m => !m).length, minS = P >= 6 ? 4 : Math.max(2, P - 1);
   for (const w of [0, 1]) {
     const a = Math.max(0, lo - w), b = Math.min(MAXF, hi + w), opts = [];
-    for (let s = 0; s < 6; s++) {
+    for (let s = 0; s < N; s++) {
       const o = [null];
-      for (let f = a; f <= b; f++) if (T.includes(mod(OPEN[s] + f - r))) o.push(f);
-      if (a > 0 && a <= 2 && T.includes(mod(OPEN[s] - r))) o.push(0);
+      if (!MINF[s]) {
+        for (let f = a; f <= b; f++) if (T.includes(mod(OPEN[s] + f - r))) o.push(f);
+        if (a > 0 && a <= 2 && T.includes(mod(OPEN[s] - r))) o.push(0);
+      }
       opts.push(o);
     }
     let best = null, bestSc = -1e9;
     const cur = [];
     const walk = s => {
       if (s < 0) {
-        const pl = []; for (let i = 5; i >= 0; i--) if (cur[i] != null) pl.push(i);
-        if (pl.length < 4) return;
-        if (mod(OPEN[pl[0]] + cur[pl[0]] - r) !== 0) return;
+        const pl = []; for (let i = N - 1; i >= 0; i--) if (cur[i] != null) pl.push(i);
+        if (pl.length < minS) return;
+        /* Root in the bass; a re-entrant tuning has no bass string (ukulele C is 0-0-0-3 with the G on top), so not there */
+        if (!REENT && mod(OPEN[pl[0]] + cur[pl[0]] - r) !== 0) return;
         const inner = pl[0] - pl[pl.length - 1] + 1 - pl.length; if (inner > 1) return;
         const pcs = new Set(pl.map(i => mod(OPEN[i] + cur[i] - r)));
         const miss = T.filter(t => !pcs.has(t));
@@ -987,8 +1389,8 @@ function chordAt(lo, hi) {
         let fingers = fr.length;
         for (const b of new Set(fr)) {
           let run = 0, start = 0, best = 0, bestStart = 0;
-          for (let i = 0; i <= 6; i++) {
-            const f = i < 6 ? cur[i] : null;
+          for (let i = 0; i <= N; i++) {
+            const f = i < N ? cur[i] : null;
             if (f === b) { if (!run) start = i; run++; }
             else if (f == null || f < b) { if (run > best) { best = run; bestStart = start; } run = 0; }
           }
@@ -999,22 +1401,24 @@ function chordAt(lo, hi) {
           fingers = Math.min(fingers, fr.length - best + 1);
         }
         if (fingers > 4) return;
-        const sc = pl.length * 3 - inner * 3 - span - (span > 3 ? 3 : 0) - miss.length * 2 + (pl[0] >= 4 ? 1 : 0);
+        const sc = Math.min(pl.length, 6) * 3 - inner * 3 - span - (span > 3 ? 3 : 0) - miss.length * 2 + (pl[0] >= N - 2 ? 1 : 0);
         if (sc > bestSc) { bestSc = sc; best = cur.slice(); }
         return;
       }
       for (const f of opts[s]) { cur[s] = f; walk(s - 1); }
     };
-    walk(5);
+    walk(N - 1);
     if (best) return best;
   }
   return null;
 }
 /* All positions of the chord along the neck: the same search in every 4-fret window, duplicates dropped, low to high. */
-const posOf = v => { const fr = v.filter(f => f != null && f > 0); return v.some(f => f === 0) && Math.max(...fr) <= 4 ? 0 : Math.min(...fr); };
+const posOf = v => { const fr = v.filter((f, i) => f != null && f > 0 && !MINF[i]); return v.some(f => f === 0) && Math.max(...fr) <= 4 ? 0 : Math.min(...fr); };
+/* the banjo's short string joins any chord it belongs to, open */
+const addDrone = v => v.map((f, s) => MINF[s] && f == null && chordIvs().includes(mod(openAt(s) - S.root)) ? MINF[s] : f);
 const chordCache = new Map();
 function chordList() {
-  const key = S.root + S.q;
+  const key = S.root + S.q + OPEN.join(",");
   if (chordCache.has(key)) return chordCache.get(key);
   const seen = new Set(), list = [];
   for (let lo = 0; lo + 3 <= MAXF; lo++) {
@@ -1061,7 +1465,7 @@ function drawChord(lo, hi) {
   showChord();
 }
 function showChord() {
-  const v = curChord = chordL[chordI];
+  const v = curChord = addDrone(chordL[chordI]);
   $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> ${T("akordas", "chord")}`;
   const p = posOf(v);
   $("chordPosN").textContent = p;
@@ -1073,7 +1477,7 @@ function showChord() {
   $("chordTab").innerHTML = SN.map((n, s) => {
     const f = v[s];
     if (f == null) return `${n}|-x---|`;
-    const iv = mod(OPEN[s] + f - S.root), t = f + (iv === 0 ? "*" : "");
+    const iv = mod(OPEN[s] + f - S.root), t = fd(s, f) + (iv === 0 ? "*" : "");
     return `${n}|-<span class="t-${iv === 0 ? "root" : "strong"}">${t}</span>${"-".repeat(4 - t.length)}| <span class="t-name">${names.get(iv)}</span>`;
   }).join("\n");
 }
@@ -1100,7 +1504,7 @@ function drawChordOverlay(scroll) {
   if (!on) return;
   const labs = new Map(CH[S.q].tones.map(([i, l, d]) => [i, { l, name: nameAt(S.root, S.q, i, d || degNum(l)) }]));
   const o = [];
-  for (let s = 0; s < 6; s++) {
+  for (let s = 0; s < N; s++) {
     const f = v[s];
     if (f == null) { o.push(`<circle class="cv-xbg" cx="14" cy="${sy(s)}" r="9"/><text class="cv-x" x="14" y="${sy(s)}" dy=".36em">×</text>`); continue; }
     const iv = mod(OPEN[s] + f - S.root), d = labs.get(iv), x = nx(f).toFixed(1), lab = S.labels === "ints" ? d.l : d.name;
@@ -1171,12 +1575,36 @@ function drawHead() {
     : st.kind === "pair" ? T("visos stygų poros", "all string pairs") : T(`visos ${B.length} formos`, `all ${B.length} shapes`);
 }
 
+/* ---------- instrument and tuning panel: the pickers and the strings of the chosen tuning */
+const nameList = t => t.n.split(" ").map(x => { const p = parseNote(x); return p.from ? p.name.toLowerCase() : p.name; });   /* low to high */
+const semiWord = n => T(n === 1 ? "pustoniu" : "pustoniais", n === 1 ? "half step" : "half steps");
+function drawTuning() {
+  const groups = INST.groups;
+  $("instSeg").innerHTML = INST_GROUPS.map(g => `<div class="tgrp"><span class="tgl">${T(g.lt, g.en)}</span><div class="seg">` + g.i.map(k =>
+    `<button data-v="${k}" aria-pressed="${k === S.inst}" data-tip="${esc(T(INSTR[k].lt, INSTR[k].en) + " · " + nameList(tunings(k)[0]).join(" "))}">${T(INSTR[k].btn, INSTR[k].btn_en)}</button>`).join("") + "</div></div>").join("");
+  $("tunSeg").innerHTML = groups.map(g => `<div class="tgrp"><span class="tgl">${T(g.lt, g.en)}</span><div class="seg">` + g.t.map(t =>
+    `<button data-v="${t.id}" aria-pressed="${t.id === TUN.id}" data-tip="${esc(nameList(t).join(" ") + " · " + tx(t, "about").split(/(?<=[.!?])\s/)[0])}">${t.name}</button>`).join("") + "</div></div>").join("");
+  const std = nameList(tunings(S.inst)[0]), cur = nameList(TUN);
+  $("tunStrings").innerHTML = cur.map((n, i) => {
+    const s = N - 1 - i, d = OPEN[s] - STD[s];
+    return `<div class="sc${d ? " chg" : ""}" data-tip="${esc(T(`${s + 1} styga`, `String ${s + 1}`) + (d ? T(`: standarte ${std[i]}, ${Math.abs(d)} ${semiWord(Math.abs(d))} ${d < 0 ? "žemiau" : "aukščiau"}`, `: ${std[i]} in standard, ${Math.abs(d)} ${semiWord(Math.abs(d))} ${d < 0 ? "lower" : "higher"}`) : ""))}"><small>${s + 1}</small><b>${n}</b><em>${d ? `${std[i]} ${d > 0 ? "+" : "−"}${Math.abs(d)}` : ""}</em></div>`;
+  }).join("");
+  $("tunAbout").textContent = tx(TUN, "about");
+
+  /* under the neck: which instrument and tuning, which string is where */
+  const top = SN[0].trim(), low = SN[N - 1].trim(), plain = S.inst === "g6" && TUN.id === "std";
+  $("footHint").textContent = (plain ? "" : `${T(INST.lt, INST.en)}, ${TUN.name} (${cur.join(" ")}) · `) +
+    (plain ? T("e viršuje, E apačioje", "high e on top, low E at the bottom") : T(`${top} viršuje, ${low} apačioje`, `${top} on top, ${low} at the bottom`)) +
+    T(" · bakstelėk natą, kad išgirstum", " · tap a note to hear it");
+  $("fb").setAttribute("aria-label", T(`Grifas (${INST.lt}) su solo natomis. Bakstelėk natą, kad išgirstum.`, `${INST.en} neck with the solo notes. Tap a note to hear it.`));
+}
+
 function render(scrollToBox) {
   if (seqT.length) stopSeq();
   fixSet();
   B = forms();
   if (S.box >= B.length) S.box = -1;
-  drawRoots(); drawControls(); drawHead(); drawBoard(); drawAbout(); drawLegend(); drawTab();
+  drawRoots(); drawControls(); drawHead(); drawBoard(); drawAbout(); drawLegend(); drawTab(); drawTuning();
   if (scrollToBox && formSel() && !isPair()) {
     const I = B[S.box].inst[0], el = $("board");
     if (el.scrollWidth > el.clientWidth) {
@@ -1194,6 +1622,8 @@ onBtn("scaleSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.datas
 onBtn("ivSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
 onBtn("labSeg", b => { S.labels = b.dataset.v; render(); });
 $("blueSw").addEventListener("click", () => { S.blue = !S.blue; render(); });
+onBtn("instSeg", b => { if (S.inst === b.dataset.v) return; S.inst = b.dataset.v; S.tun = "std"; S.box = -1; applyTuning(); render(true); });
+onBtn("tunSeg", b => { if (S.tun === b.dataset.v) return; S.tun = b.dataset.v; applyTuning(); render(true); });
 $("groupSw").addEventListener("click", () => { S.group = !S.group; render(); });
 onBtn("boxSeg", b => { S.box = +b.dataset.v; if (S.box >= 0) lastBox = S.box; render(true); });
 $("jam").addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (!b) return; S.group = true; S.box = +b.dataset.pick; render(true); });
@@ -1213,7 +1643,7 @@ $("fb").addEventListener("click", e => {
 /* ---------- sound: plucked-string model (Karplus–Strong), acoustic guitar: body resonance, soft top */
 let ac = null, bus = {};
 const bufCache = new Map();
-const voices = [null, null, null, null, null, null];
+const voices = [];
 function biq(type, f, q, g) {
   const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f;
   if (q != null) b.Q.value = q; if (g != null) b.gain.value = g; return b;
@@ -1232,17 +1662,40 @@ function audio() {
     /* acoustic */
     bus.aco = gn(.6);
     chain(bus.aco, biq("peaking", 210, 1.1, 4), biq("highshelf", 4200, null, -5), master);
+    /* mandolin and bouzouki: small body, no boom, a bright bite */
+    bus.man = gn(.5);
+    chain(bus.man, biq("highpass", 170, .7), biq("peaking", 1900, 1.2, 3), biq("highshelf", 5500, null, -3), master);
+    /* bass: round and deep, the pick click rolled off */
+    bus.bass = gn(.75);
+    chain(bus.bass, biq("peaking", 90, .9, 4), biq("lowpass", 2400, .7), master);
+    /* ukulele: nylon, small body, soft top */
+    bus.uke = gn(.6);
+    chain(bus.uke, biq("highpass", 220, .7), biq("peaking", 450, 1, 3), biq("highshelf", 3500, null, -7), master);
+    /* banjo: a drum head for a top, all twang */
+    bus.banjo = gn(.5);
+    chain(bus.banjo, biq("highpass", 260, .7), biq("peaking", 2600, 1.4, 6), master);
   }
   if (ac.state === "suspended") ac.resume();
   return ac;
 }
 
-function ks(midi) {
-  if (bufCache.has(midi)) return bufCache.get(midi);
-  const sr = ac.sampleRate, f = 440 * Math.pow(2, (midi - 69) / 12);
-  const S = .5;                                           /* loop damping: lower = brighter, longer */
+/* the plucked string per instrument: S loop damping (lower = brighter, longer), T60 seconds to fade by 60 dB,
+   P pick position (nearer the bridge = thinner), bus the body it rings through */
+const SND = {
+  guitar: { S: .5, T60: 3.2, P: .2, bus: "aco" },
+  bass:   { S: .55, T60: 4.2, P: .26, bus: "bass" },
+  uke:    { S: .6, T60: 1.7, P: .22, bus: "uke" },
+  banjo:  { S: .25, T60: 1.2, P: .1, bus: "banjo" },
+  mando:  { S: .3, T60: 1.6, P: .12, bus: "man" },
+  bouz:   { S: .3, T60: 2.8, P: .13, bus: "man" }
+};
+function ks(midi, kind) {
+  const key = midi + kind;
+  if (bufCache.has(key)) return bufCache.get(key);
+  const sr = ac.sampleRate, f = 440 * Math.pow(2, (midi - 69) / 12), Z = SND[kind];
+  const S = Z.S;
   const N = Math.max(2, Math.floor(sr / f - S)), rate = f / (sr / (N + S));
-  const T60 = 3.2;                                        /* seconds to fade by 60 dB */
+  const T60 = Z.T60;
   const rho = Math.pow(10, -3 / (f * T60));
   const len = Math.floor(sr * 2.6), buf = ac.createBuffer(1, len, sr), d = buf.getChannelData(0);
   let seed = (midi * 9301 + 49297) >>> 0;
@@ -1250,7 +1703,7 @@ function ks(midi) {
   /* pick: noise burst, filtered by pick position on the string */
   const ex = new Float32Array(N); let lp = 0, mean = 0;
   for (let i = 0; i < N; i++) { lp += .55 * (rnd() - lp); ex[i] = lp; }
-  const P = Math.max(1, Math.round(N * .2));
+  const P = Math.max(1, Math.round(N * Z.P));
   for (let i = N - 1; i >= P; i--) ex[i] -= ex[i - P];
   for (let i = 0; i < N; i++) mean += ex[i] / N;
   for (let i = 0; i < N; i++) d[i] = ex[i] - mean;
@@ -1258,21 +1711,29 @@ function ks(midi) {
   let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(d[i]));
   const g = .5 / (pk || 1), fade = Math.floor(sr * .15);
   for (let i = 0; i < len; i++) d[i] *= g * (i > len - fade ? (len - i) / fade : 1);
-  const v = { buf, rate }; bufCache.set(midi, v); return v;
+  const v = { buf, rate }; bufCache.set(key, v); return v;
 }
 
-/* one voice per string: a new note on the same string stops the old one, like a real guitar */
+/* one voice per string: a new note on the same string stops the old one, like a real guitar.
+   A course is two strings: a unison pair a hair apart in pitch and time (the mandolin shimmer),
+   an octave pair with the thin string struck first and quieter (the 12-string jangle) */
 function pluck(s, midi, t, vel) {
-  const { buf, rate } = ks(midi);
-  const src = ac.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  const kind = INST.kind, c = CRS[s];
   const g = gn(0);
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + .002);
-  src.connect(g).connect(bus.aco);
+  g.connect(bus[SND[kind].bus]);
+  const parts = c === "u" ? [[midi, .9985, 0, .62], [midi, 1.0015, .006, .62]]
+    : c === "8" ? [[midi + 12, 1, 0, .42], [midi, 1, .007, .8]] : [[midi, 1, 0, 1]];
+  const srcs = parts.map(([m, dt, at, gv]) => {
+    const { buf, rate } = ks(m, kind);
+    const src = ac.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate * dt;
+    const sg = gn(gv); src.connect(sg).connect(g); src.start(t + at); return src;
+  });
   const old = voices[s];
-  if (old) { old.g.gain.cancelScheduledValues(t); old.g.gain.setTargetAtTime(0, t, .012); try { old.src.stop(t + .15); } catch (e) {} }
-  src.start(t);
-  voices[s] = { src, g };
-  src.onended = () => { if (voices[s] && voices[s].src === src) voices[s] = null; };
+  if (old) { old.g.gain.cancelScheduledValues(t); old.g.gain.setTargetAtTime(0, t, .012); for (const o of old.srcs) try { o.stop(t + .15); } catch (e) {} }
+  const src = srcs[0];
+  voices[s] = { srcs, g };
+  src.onended = () => { if (voices[s] && voices[s].srcs[0] === src) voices[s] = null; };
 }
 let blinkT = 0;
 function blink() { const p = $("pilot"); p.classList.add("on"); clearTimeout(blinkT); blinkT = setTimeout(() => p.classList.remove("on"), 140); }
@@ -1317,7 +1778,7 @@ $("playForm").addEventListener("click", e => {
 /* chord: each note from the bass up, then the whole chord strummed */
 $("playChord").addEventListener("click", e => {
   const v = curChord; if (!v) return;
-  const notes = []; for (let s = 5; s >= 0; s--) if (v[s] != null) notes.push([s, v[s]]);
+  const notes = []; for (let s = N - 1; s >= 0; s--) if (v[s] != null) notes.push([s, v[s]]);
   const ev = notes.map(n => [n]).concat([notes]);
   playSeq(e.currentTarget, ev, i => i === notes.length - 1 ? 650 : 330, .03);
 });
@@ -1366,9 +1827,9 @@ const MOTTOS = [
 const STATIC = [
   ["chordPanel", "aria", "Akordas", "Chord"], ["qSeg", "aria", "Akordo tipas", "Chord type"], ["roots", "aria", "Akordo Root nata", "Chord root"],
   ["scaleSets", "aria", "Gamos", "Scales"], ["ivSets", "aria", "Intervalai", "Intervals"], ["langSeg", "aria", "Kalba", "Language"],
-  ["fb", "aria", "Gitaros grifas su solo natomis. Bakstelėk natą, kad išgirstum.", "Guitar neck with the solo notes. Tap a note to hear it."],
   ["scrollL", "label", "Slinkti grifą kairėn", "Scroll the neck left"], ["scrollR", "label", "Slinkti grifą dešinėn", "Scroll the neck right"],
-  ["footHint", "text", "e viršuje, E apačioje · bakstelėk natą, kad išgirstum", "high e on top, low E at the bottom · tap a note to hear it"],
+  ["tunPanel", "aria", "Instrumentas ir derinimas", "Instrument and tuning"], ["instTitle", "text", "Instrumentas", "Instrument"], ["tunTitle", "text", "Derinimas", "Tuning"],
+  ["instSeg", "aria", "Instrumentas", "Instrument"], ["tunSeg", "aria", "Derinimas", "Tuning"], ["tunStrings", "aria", "Stygos", "Strings"],
   ["blueTxt", "text", "Blue nata", "Blue note"], ["blueSw", "tip", "Prideda bliuzo natą prie pentatonikos", "Adds the blues note to the pentatonic"],
   ["groupTxt", "text", "Formos", "Shapes"], ["groupSw", "tip", "Rodo formas ant grifo", "Shows the shapes on the neck"],
   ["labL", "text", "Žymės", "Labels"],
