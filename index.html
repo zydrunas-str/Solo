@@ -275,6 +275,93 @@ pre.tab .t-name{color:var(--screen-dim)}
 .cv-x{font:700 14px var(--font-mono);fill:var(--accent);text-anchor:middle}
 /* instrument and tuning: its own panel under the cards, two sections with their own headings */
 .tunpanel{gap:0}
+/* folding panels: closed by default, the header keeps the current choice in view */
+.foldhead{display:flex;align-items:center;gap:12px;width:100%;min-height:30px;background:none;border:0;padding:0;text-align:left;color:inherit}
+.foldsum{margin-right:auto;min-width:0;color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foldhead[aria-expanded="true"] .foldsum{visibility:hidden}
+.chev{width:20px;height:20px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.foldhead:hover .chev{stroke:var(--ink)}
+.foldhead[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.foldhead:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+.foldbody{margin-top:12px}
+.foldcol{display:flex;flex-direction:column;gap:12px}
+/* explanations and tabs: the old cards, flat inside their panel */
+.flat{display:flex;flex-direction:column;gap:10px;min-width:0}
+.duo{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px 28px}
+@media (max-width:760px){.duo{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:760px){#tabBody .tabs{flex-direction:row}#tabBody .tbox{flex:1 1 0}#tabBody #chordBox{flex:0 1 300px}}
+/* chord types: the everyday ones first, the rest behind "More" */
+#qSeg .qmore{color:var(--muted);border-style:dashed}
+/* progressions: a play button, the name and numerals, the chords to tap */
+.plist{display:flex;flex-direction:column}
+.prow{display:grid;grid-template-columns:auto minmax(150px,220px) minmax(0,1fr);gap:8px 14px;align-items:center;padding-block:10px;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0;padding-top:0}
+.pinfo{display:flex;flex-direction:column;min-width:0}
+.pinfo b{font-family:var(--font-narrow);font-size:17px;font-weight:600;line-height:1.15}
+.pinfo small{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.pplay{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center;padding:0}
+.pplay svg{width:18px;height:18px;fill:currentColor}
+.pplay .i-stop{display:none}
+.pplay[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pplay[aria-pressed="true"] .i-play{display:none}.pplay[aria-pressed="true"] .i-stop{display:block}
+.pch button{font-family:var(--font-narrow);font-size:15px;font-weight:600;min-width:46px}
+/* chord buttons of the circle and the progressions: the I is orange like a Root everywhere; the chord shown in the tab
+   card has an orange ring 1px off its edge (on the I from the start), the one sounding is filled dark */
+.pch button[aria-pressed="true"],.cofdeg button[aria-pressed="true"]{background:transparent;color:var(--ink);border-color:var(--line);outline:2px solid var(--accent);outline-offset:1px}
+.pch button.ton,.cofdeg button.ton{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cofdeg button.ton small,.pch button.ton .x{color:inherit;opacity:.8}
+.pch button.now{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.pch button.now .x{color:inherit;opacity:.7}
+.pch .x{font-family:var(--font-mono);font-size:10px;font-weight:500;color:var(--muted);margin-left:3px}
+@media (max-width:600px){.prow{grid-template-columns:auto minmax(0,1fr)}.pch{grid-column:1/-1}}
+/* the progression's path over the circle while it plays */
+.cf-path{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;opacity:.55;pointer-events:none}
+.cf-k.now path{stroke:var(--ink);stroke-width:3}
+/* the chord shown in the tab card: an orange line just inside its cell, light on an orange cell */
+.cf-look{fill:none;stroke:var(--accent);stroke-width:2;pointer-events:none}
+.cf-look.lt{stroke:#fff}
+.switch.off{opacity:.4;pointer-events:none}
+@media (max-width:600px){
+  /* narrow: the choice drops under the title instead of being cut short */
+  .foldhead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+  .foldsum{grid-row:2;margin:0}.chev{grid-column:2;grid-row:1/3}
+  .foldhead[aria-expanded="true"] .foldsum{display:none}
+}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+/* circle of fifths: majors outside, their relative minors inside; the key's six chords shaded, the chosen one lit */
+.cof{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:22px;align-items:center}
+@media (max-width:640px){.cof{grid-template-columns:minmax(0,1fr)}#cof{max-width:340px;margin:0 auto}}
+#cof{width:100%;height:auto;display:block}
+.cf-k{cursor:pointer;outline:none}
+.cf-k path{fill:var(--bg);stroke:var(--line);stroke-width:1}
+#cof,#cof *{-webkit-tap-highlight-color:transparent}
+.cf-k:focus{outline:none}
+@media (hover:hover){.cf-k:hover path{fill:color-mix(in srgb,var(--ink) 8%,var(--bg))}}
+.cf-k.fam path{fill:color-mix(in srgb,var(--accent) 20%,var(--bg))}
+@media (hover:hover){.cf-k.fam:hover path{fill:color-mix(in srgb,var(--accent) 30%,var(--bg))}}
+.cf-k.on path{fill:var(--accent);stroke:var(--accent)}
+.cf-k:focus-visible path{stroke:var(--ink);stroke-width:2.5}
+.cf-t text{fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.cf-t{pointer-events:none}
+.cf-t .mj{font-family:var(--font-display);font-weight:800;font-size:20px}
+.cf-t .mn{font-family:var(--font-narrow);font-weight:600;font-size:14px}
+.cf-t .rn{font-family:var(--font-mono);font-size:9.5px;fill:var(--muted)}
+.cf-t.on text,.cf-t.on .rn{fill:var(--accent-ink)}
+.cofside .switch{align-self:flex-start}
+.cofacts{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+#cofDom{font-weight:600;color:var(--ink)}
+.cofdomtx{color:var(--muted);font-size:13.5px;margin-top:-4px}
+.cofdomtx:empty{display:none}
+.cf-mid .k{font-family:var(--font-display);font-weight:800;font-size:30px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.cf-mid .s{font-family:var(--font-narrow);font-weight:500;font-size:12px;fill:var(--muted);text-anchor:middle;dominant-baseline:central}
+.cofside{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cofkey{display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap}
+.cofkey b{font-family:var(--font-display);font-weight:800;font-size:24px;letter-spacing:.02em}
+.cofkey span{color:var(--muted);font-size:14px}
+.cofdeg button{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:54px;font-family:var(--font-narrow);font-size:16px;font-weight:600;padding:5px 10px 6px}
+.cofdeg button small{font-family:var(--font-mono);font-size:10px;font-weight:500;color:var(--muted)}
+.cofdeg button[aria-pressed="true"] small{color:inherit;opacity:.75}
+#cofNote:empty{display:none}
 .tsec{display:flex;flex-direction:column;gap:10px;padding-block:12px}
 .tsec:first-child{padding-top:0}
 .tsec + .tsec{border-top:1px solid var(--line)}
@@ -320,7 +407,9 @@ pre.tab .t-name{color:var(--screen-dim)}
     </div>
   </header>
 
-  <section class="panel" id="chordPanel" aria-label="Akordas">
+  <section class="panel" id="chordPanel" aria-label="Akordas ir gama">
+    <button class="foldhead" id="chordHead" aria-expanded="false" aria-controls="chordBody"><span class="label" id="chordHeadL">Akordas ir gama</span><span class="foldsum" id="chordSum"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="foldcol" id="chordBody">
     <div class="chord-head">
       <div class="seg big" id="qSeg" role="group" aria-label="Akordo tipas">
       </div>
@@ -330,6 +419,7 @@ pre.tab .t-name{color:var(--screen-dim)}
       <div class="seg" id="scaleSets" role="group" aria-label="Gamos"></div>
       <span class="sep" aria-hidden="true"></span>
       <div class="seg" id="ivSets" role="group" aria-label="Intervalai"></div>
+    </div>
     </div>
   </section>
 
@@ -351,17 +441,23 @@ pre.tab .t-name{color:var(--screen-dim)}
     </div>
   </div>
 
-  <div class="cards">
-    <section class="card">
+  <section class="panel" id="infoPanel" aria-label="Paaiškinimai">
+    <button class="foldhead" id="infoHead" aria-expanded="false" aria-controls="infoBody"><span class="label" id="infoHeadL">Paaiškinimai</span><span class="foldsum" id="infoSum"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="duo" id="infoBody" hidden>
+      <section class="flat">
       <span class="label" id="aboutTitle">Apie gamą</span>
       <p class="about" id="about"></p>
       <div class="jam" id="jam"></div>
     </section>
-    <section class="card">
+      <section class="flat">
       <span class="label" id="legendTitle">Natų reikšmė</span>
       <ul class="legend" id="legend"></ul>
     </section>
-    <section class="card">
+    </div>
+  </section>
+  <section class="panel" id="tabPanel" aria-label="Tabai">
+    <button class="foldhead" id="tabHead" aria-expanded="false" aria-controls="tabBody"><span class="label" id="tabHeadL">Tabai</span><span class="foldsum" id="tabSum"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="flat" id="tabBody" hidden>
       <div class="tabs">
         <div class="tbox">
           <div class="tabhead"><span class="label" id="tabTitle">Forma</span><span class="rng" id="tabRange"></span><span class="posnav" id="formNav" role="group" aria-label="Forma"><button id="formPrev" aria-label="Ankstesnė forma"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="formN">1</b><button id="formNext" aria-label="Kita forma"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
@@ -381,9 +477,35 @@ pre.tab .t-name{color:var(--screen-dim)}
         </div>
       </div>
       <p class="help" id="tabHelp" hidden></p>
-    </section>
-  </div>
+    </div>
+  </section>
+  <section class="panel" id="cofPanel" aria-label="Circle of fifths">
+    <button class="foldhead" id="cofHead" aria-expanded="false" aria-controls="cofBody"><span class="label">Circle of fifths</span><span class="foldsum" id="cofSum"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="cof" id="cofBody" hidden>
+      <svg id="cof" viewBox="0 0 320 320" role="group" aria-label="Circle of fifths"></svg>
+      <div class="cofside">
+        <div class="cofkey"><b id="cofKey"></b><span id="cofSig"></span></div>
+        <div class="cofacts">
+          <button class="switch" id="cofScaleSw" aria-pressed="true"><i></i><span id="cofScaleTxt">Pagal gamą</span></button>
+          <div class="seg"><button id="cofDom"></button></div>
+        </div>
+        <p class="about cofdomtx" id="cofDomTx"></p>
+        <div class="seg cofdeg" id="cofDeg" role="group" aria-label="Tonacijos akordai"></div>
+        <p class="about" id="cofNote"></p>
+        <p class="about" id="cofAbout"></p>
+      </div>
+    </div>
+  </section>
+  <section class="panel" id="progPanel" aria-label="Progressions">
+    <button class="foldhead" id="progHead" aria-expanded="false" aria-controls="progBody"><span class="label" id="progHeadL">Progressions</span><span class="foldsum" id="progSum"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="foldcol" id="progBody" hidden>
+      <p class="about" id="progAbout"></p>
+      <div class="plist" id="progList"></div>
+    </div>
+  </section>
   <section class="panel tunpanel" id="tunPanel" aria-label="Instrumentas ir derinimas">
+    <button class="foldhead" id="tunHead" aria-expanded="false" aria-controls="tunBody"><span class="label" id="tunHeadL">Instrumentas ir derinimas</span><span class="foldsum" id="tunSum"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="foldbody" id="tunBody" hidden>
     <div class="tsec">
       <span class="label" id="instTitle">Instrumentas</span>
       <div class="tgrps" id="instSeg" role="group" aria-label="Instrumentas"></div>
@@ -395,6 +517,7 @@ pre.tab .t-name{color:var(--screen-dim)}
         <div class="tstr" id="tunStrings" aria-label="Stygos"></div>
         <p class="about" id="tunAbout"></p>
       </div>
+    </div>
     </div>
   </section>
   <p class="copy">© Žydrūnas Strumila 2026</p>
@@ -769,6 +892,7 @@ const GROUPS = [
 ];
 /* a chord type with no own notes in a scale's ctx borrows a close relative's (13 reads like 9, 7sus4 like sus4) */
 const CTXALIAS = { dom13: "dom9", d7s4: "sus4" };
+const BASICQ = new Set(["min", "maj", "sus4", "aug", "dom7", "maj7", "m7"]);
 const ctxOf = (o, q) => o.ctx && (o.ctx[q] || o.ctx[CTXALIAS[q]]);
 const fam = q => CH[q] ? CH[q].fam : q;
 const spellArr = (pc, q) => FLAT_KEYS[fam(q)].has(pc) ? FLAT : SHARP;
@@ -977,7 +1101,7 @@ const SETS = {
     about: "Ta pati nata per oktavą. Ja storinama melodija (Wes Montgomery stilius), be to, taip greitai randamas Root visame grife." },
   /* CAGED: the chord tones in the five open-chord shapes moved up the neck; shown only where it holds (cagedOK) */
   caged: { q: "*", kind: "arp", cg: true, btn: "CAGED", name: "CAGED",
-    about: "Penkios akordo formos, pavadintos pagal atvirus C, A, G, E ir D akordus. Grife jos eina viena po kitos ratu ir dalijasi kraštinėmis natomis, todėl kartu uždengia visą grifą. Bakstelėkite formą: ji liks ryški, o po grifu matysite jos akordą.",
+    about: "Penkios akordo formos, pavadintos pagal atvirus C, A, G, E ir D akordus. Grife jos eina viena po kitos ratu ir dalijasi kraštinėmis natomis, todėl kartu uždengia visą grifą. Bakstelėk formą: ji liks ryški, o po grifu matysite jos akordą.",
     about_en: "Five chord shapes named after the open C, A, G, E and D chords. Up the neck they follow one another in a ring and share their edge notes, so together they cover the whole neck. Tap a shape: it stays bright, and its chord shows below the neck." }
 };
 /* each shape: the string its Root sits on (the A string for C and A, the low E for G and E, the D string for D)
@@ -1013,7 +1137,7 @@ const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
 const SET = () => { const st = SETS[S.set], o = ctxOf(st, S.q); return o ? Object.assign({}, st, o) : st; };
 
 /* ---------- state */
-const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", inst: "g6", tun: "std" };
+const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", inst: "g6", tun: "std", chordOpen: true, infoOpen: false, tabOpen: false, cofOpen: false, progOpen: false, tunOpen: false, moreQ: false, cofScale: true };
 const S = Object.assign({}, DEF);
 try {
   const v = JSON.parse(localStorage.getItem("lempinio-solo-v1") || "null");
@@ -1543,8 +1667,13 @@ function chordList() {
   chordCache.set(key, list); return list;
 }
 let curChord = null, chordL = [], chordI = 0;
+/* VIEW: a chord tapped in a progression, only looked at: the chord card (and its eye on the neck) shows it, while
+   Root, scale, neck and circle stay on the chosen chord. Its code runs with S.root/S.q swapped for the moment */
+let VIEW = null;
+const viewing = fn => { if (!VIEW) return fn(); const r0 = S.root, q0 = S.q; S.root = VIEW.pc; S.q = VIEW.q; try { return fn(); } finally { S.root = r0; S.q = q0; } };
 /* the form decides the starting chord; ‹ › then walk the other positions */
-function drawChord(lo, hi) {
+const drawChord = (lo, hi) => viewing(() => drawChord0(lo, hi));
+function drawChord0(lo, hi) {
   const box = $("chordBox");
   if (isPair()) {
     /* interval pairs have no fret window: start on the grip whose bass is on the pair's lower string */
@@ -1563,7 +1692,7 @@ function drawChord(lo, hi) {
   }
   chordL = chordList().slice();
   /* no grip inside the form's frets: take the nearest position */
-  const cg = SET().cg && ["maj", "min"].includes(S.q) ? B[formSel() ? S.box : 0].inst[0].grip : null;
+  const cg = !VIEW && SET().cg && ["maj", "min"].includes(S.q) ? B[formSel() ? S.box : 0].inst[0].grip : null;
   const v = (cg && OPEN.map((_, s) => { const g = cg.find(x => x[0] === s); return g ? g[1] : null; })) || chordAt(lo, hi) || chordL.slice().sort((a, b) => Math.abs(posOf(a) - lo) - Math.abs(posOf(b) - lo))[0];
   box.hidden = !v;
   if (!v) { curChord = null; drawChordOverlay(); return; }
@@ -1571,7 +1700,8 @@ function drawChord(lo, hi) {
   if (chordI < 0) { chordL.push(v); chordL.sort((a, b) => posOf(a) - posOf(b)); chordI = chordL.indexOf(v); }
   showChord();
 }
-function showChord() {
+const showChord = () => viewing(showChord0);
+function showChord0() {
   const v = curChord = addDrone(chordL[chordI]);
   $("chordTitle").innerHTML = `<span class="cn">${chordName(S.root, S.q)}</span> ${T("akordas", "chord")}`;
   const p = posOf(v);
@@ -1604,7 +1734,8 @@ function eyeLab() {
   $("chordEye").setAttribute("aria-pressed", String(chordView));
   setLab($("chordEye"), chordView ? T("Slėpti akordą grife", "Hide the chord on the neck") : T("Rodyti akordą grife", "Show the chord on the neck"));
 }
-function drawChordOverlay(scroll) {
+const drawChordOverlay = scroll => viewing(() => drawChordOverlay0(scroll));
+function drawChordOverlay0(scroll) {
   const fb = $("fb"), old = fb.querySelector("#chordOv"); if (old) old.remove();
   const v = curChord, on = chordView && v && !$("chordBox").hidden;
   fb.classList.toggle("chordview", !!on);
@@ -1655,8 +1786,11 @@ function drawControls() {
   const setBtn = id => `<button data-v="${id}" aria-pressed="${id === S.set}" data-tip="${tipOf(id)}">${tx(SETS[id], "btn")}</button>`;
   $("scaleSets").innerHTML = ORDER[S.q].map(setBtn).join("");
   $("ivSets").innerHTML = ivList().map(setBtn).join("");
-  $("qSeg").innerHTML = GROUPS.map(g => `<span class="qgrp" role="group" aria-label="${esc(T(g.lt, g.en))}">` + g.q.map(q =>
-    `<button data-v="${q}" aria-pressed="${q === S.q}" data-tip="${esc(T(g.lt, g.en))} · ${esc(tx(CH[q], "tip"))} · ${CH[q].tones.map(t => t[1]).join(" ")}">${CH[q].btn}</button>`).join("") + "</span>").join("");
+  /* folded: triads and the three common sevenths (plus the chosen type, wherever it lives); "More" sits in the last group shown */
+  const shown = GROUPS.map(g => g.q.filter(q => S.moreQ || BASICQ.has(q) || q === S.q)).filter(a => a.length), gl = GROUPS.filter(g => g.q.some(q => S.moreQ || BASICQ.has(q) || q === S.q));
+  const more = `<button class="qmore" data-more="1" aria-expanded="${S.moreQ}" data-tip="${esc(S.moreQ ? T("Rodyti tik dažniausius akordus", "Show only the common chords") : T("Rodyti visus akordus", "Show all chords"))}">${S.moreQ ? T("Mažiau", "Less") : T("Daugiau", "More")}</button>`;
+  $("qSeg").innerHTML = shown.map((a, i) => { const g = gl[i]; return `<span class="qgrp" role="group" aria-label="${esc(T(g.lt, g.en))}">` + a.map(q =>
+    `<button data-v="${q}" aria-pressed="${q === S.q}" data-tip="${esc(T(g.lt, g.en))} · ${esc(tx(CH[q], "tip"))} · ${CH[q].tones.map(t => t[1]).join(" ")}">${CH[q].btn}</button>`).join("") + (i === shown.length - 1 ? more : "") + "</span>"; }).join("");
   setPressed("labSeg", S.labels);
   $("blueSw").hidden = !st.blue;
   $("blueSw").setAttribute("aria-pressed", String(S.blue));
@@ -1697,6 +1831,7 @@ function drawTuning() {
     return `<div class="sc${d ? " chg" : ""}" data-tip="${esc(T(`${s + 1} styga`, `String ${s + 1}`) + (d ? T(`: standarte ${std[i]}, ${Math.abs(d)} ${semiWord(Math.abs(d))} ${d < 0 ? "žemiau" : "aukščiau"}`, `: ${std[i]} in standard, ${Math.abs(d)} ${semiWord(Math.abs(d))} ${d < 0 ? "lower" : "higher"}`) : ""))}"><small>${s + 1}</small><b>${n}</b><em>${d ? `${std[i]} ${d > 0 ? "+" : "−"}${Math.abs(d)}` : ""}</em></div>`;
   }).join("");
   $("tunAbout").textContent = tx(TUN, "about");
+  $("tunSum").textContent = `${T(INST.lt, INST.en)} · ${TUN.name} (${cur.join(" ")})`;
 
   /* under the neck: which instrument and tuning, which string is where */
   const top = SN[0].trim(), low = SN[N - 1].trim(), plain = S.inst === "g6" && TUN.id === "std";
@@ -1706,12 +1841,233 @@ function drawTuning() {
   $("fb").setAttribute("aria-label", T(`Grifas (${INST.lt}) su solo natomis. Bakstelėk natą, kad išgirstum.`, `${INST.en} neck with the solo notes. Tap a note to hear it.`));
 }
 
+/* ---------- circle of fifths. The chosen chord is always the I (i for a minor): the numerals count from it.
+   The shaded cells are the six chords of the major key whose notes it uses: its own for a major chord, the relative
+   major for a minor (A minor = C major's notes), the key a dominant resolves to (G7 = G Mixolydian = C major's notes),
+   or, with "Follow the scale", the key the chosen mode comes from (A Dorian = G major). dim7 and aug name no key. */
+const COF = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
+const DOMS = new Set(["dom7", "dom9", "dom13", "alt", "d7s4"]);
+const DIA = [[0, "maj"], [2, "min"], [4, "min"], [5, "maj"], [7, "maj"], [9, "min"], [11, "m7b5"]];
+const SHARPS = ["F♯", "C♯", "G♯", "D♯", "A♯", "E♯"], FLATS = ["B♭", "E♭", "A♭", "D♭", "G♭", "C♭"];
+/* a scale from one major key (the church modes, both pentatonics): where its notes come from, as an interval from its Root */
+const PARENT = { ion: 0, Mpent: 0, lyd: 7, mix: 5, dor: 10, phr: 8, aeo: 3, mpent: 3, loc: 1 };
+const MODEOF = { Mpent: "ion", mpent: "aeo" };
+/* numerals counted from the chosen chord, always upper case with the chord's own suffix (Berklee style: IIm7–V7–Imaj7),
+   flats where the step is lowered (A minor: Im, IVm, Vm, ♭III, ♭VI, ♭VII) */
+const RF = ["I", "♭II", "II", "♭III", "III", "IV", "♯IV", "V", "♭VI", "VI", "♭VII", "VII"];
+const roman = (iv, q) => RF[iv] + CH[q].suf;
+const DEGI = [1, 2, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7];
+/* inside a key the step number comes from the letter, so the tritone reads ♯IV in Lydian and ♭V in Locrian */
+const MAJS = [0, 2, 4, 5, 7, 9, 11], RN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+const romanD = (iv, deg, q) => { let a = iv - MAJS[deg - 1]; if (a > 6) a -= 12; if (a < -6) a += 12;
+  return (a < 0 ? "♭".repeat(-a) : "♯".repeat(a)) + RN[deg - 1] + CH[q].suf; };
+function cofKey() {
+  const q = S.q, r = S.root, minor = fam(q) === "min", p = PARENT[S.set];
+  if (S.cofScale && p != null) return { t: r, minor, k: mod(r + p), mode: MODEOF[S.set] || S.set };
+  if (q === "dim7" || q === "aug" || q === "m7b5") return null;
+  if (DOMS.has(q)) return { t: r, minor: false, k: mod(r + 5), mode: "mix" };
+  return minor ? { t: r, minor, k: mod(r + 3), mode: "aeo" } : { t: r, minor, k: r, mode: "ion" };
+}
+/* dominant and resolution: from any major or minor chord to its V7 (Am → E7, the harmonic-minor V), and from a dominant
+   back to its tonic (G7 → C). A trip there and back returns to the same chord: Am → E7 → Am */
+let domFrom = null;
+function domTarget() {
+  if (["dim7", "aug", "m7b5"].includes(S.q)) return null;
+  if (DOMS.has(S.q)) { const pc = mod(S.root + 5); return { pc, q: domFrom && domFrom.pc === pc ? domFrom.q : "maj", res: true }; }
+  return { pc: mod(S.root + 7), q: "dom7", res: false };
+}
+function drawDom() {
+  const D = domTarget(), b = $("cofDom");
+  b.parentElement.hidden = !D;
+  if (!D) { $("cofDomTx").textContent = ""; return; }
+  const cn = chordName(S.root, S.q), tg = chordName(D.pc, D.q), minor = fam(S.q) === "min";
+  /* the step is between the letters on the outer ring (A → E), true for a minor chord too, whose own cell sits inside */
+  const ra = rootName(S.root, S.q), rb = rootName(D.pc, D.q);
+  b.textContent = D.res ? T(`Išrišimas → ${tg}`, `Resolve → ${tg}`) : T(`Dominantė → ${tg}`, `Dominant → ${tg}`);
+  b.dataset.tip = D.res ? T(`Pakeisti akordą į toniką ${tg}`, `Change the chord to the tonic ${tg}`) : T(`Pakeisti akordą į jo dominantę ${tg}`, `Change the chord to its dominant ${tg}`);
+  $("cofDomTx").textContent = D.res
+    ? T(`${cn} yra dominantė (V7): ji kuria įtampą, kuri natūraliai išrišama į toniką ${tg}. Ant rato ${rb} yra vienas žingsnis prieš laikrodžio rodyklę nuo ${ra}.`,
+        `${cn} is a dominant (V7): it builds tension that naturally resolves to the tonic ${tg}. On the circle ${rb} is one step anticlockwise from ${ra}.`)
+    : T(`Dominantė yra V laipsnio septakordas: ${cn} atveju tai ${tg}. Ji kuria įtampą, kuri išrišama atgal į ${cn}. Ant rato ${rb} yra vienas žingsnis pagal laikrodžio rodyklę nuo ${ra}.` + (minor ? " Minore ji imama iš harmoninio minoro, todėl yra mažorinė." : ""),
+        `The dominant is the seventh chord on step V: for ${cn} it is ${tg}. It builds tension that resolves back to ${cn}. On the circle ${rb} is one step clockwise from ${ra}.` + (minor ? " In a minor key it comes from the harmonic minor, so it is major." : ""));
+}
+const modeName = m => m === "ion" ? T("mažoras", "major") : m === "aeo" ? T("minoras", "minor") : tx(SETS[m], "name");
+/* a click keeps the chord type while it still fits (Am7 → Em7, Cmaj7 → Gmaj7), else falls back to the plain triad */
+const KEEP = q => !DOMS.has(q) && !["m7b5", "dim7", "aug"].includes(q);
+const cofPick = (pc, q) => { S.root = pc; S.q = q === "m7b5" ? q : fam(S.q) === q && KEEP(S.q) ? S.q : q; S.box = -1; render(true); };
+function drawCof() {
+  const K = cofKey(), c = 160, P = (r, d) => { const a = d * Math.PI / 180; return `${(c + r * Math.cos(a)).toFixed(1)},${(c + r * Math.sin(a)).toFixed(1)}`; };
+  const sector = (r0, r1, a0, a1) => `M${P(r1, a0)}A${r1} ${r1} 0 0 1 ${P(r1, a1)}L${P(r0, a1)}A${r0} ${r0} 0 0 0 ${P(r0, a0)}Z`;
+  const at = (r, d, dy = 0) => { const a = d * Math.PI / 180; return `x="${(c + r * Math.cos(a)).toFixed(1)}" y="${(c + r * Math.sin(a) + dy).toFixed(1)}"`; };
+  const ki = K ? COF.indexOf(K.k) : -99, near = i => K ? [mod(ki - 1), ki, mod(ki + 1)].indexOf(i) : -1;
+  const onMaj = !["dim7", "aug", "m7b5"].includes(S.q) && fam(S.q) === "maj", onMin = !["dim7", "m7b5"].includes(S.q) && fam(S.q) === "min";
+  const o = [], lab = [], cur = PL && PL.cur != null ? progChord(PL.cur) : null;
+  const degOf = pc => K ? (DIA.findIndex(([iv]) => mod(K.k + iv) === pc) - DIA.findIndex(([iv]) => mod(K.k + iv) === K.t) + 7) % 7 + 1 : 1;
+  const isNow = (pc, ring) => cur && cur.pc === pc && cfRing(cur.q) === ring;
+  const look = VIEW || { pc: S.root, q: S.q }, lr = cfRing(look.q);
+  COF.forEach((pc, i) => {
+    const d = i * 30 - 90, a0 = d - 15, a1 = d + 15, m = mod(pc + 9), n = near(i);
+    const mj = rootName(pc, "maj"), mn = rootName(m, "min") + "m";
+    const onO = onMaj && pc === S.root, onI = onMin && m === S.root;
+    if (lr === "o" && look.pc === pc) lab.unshift(`<path class="cf-look${onO ? " lt" : ""}" d="${sector(109, 149, a0 + 1.4, a1 - 1.4)}"/>`);
+    if (lr === "i" && look.pc === m) lab.unshift(`<path class="cf-look${onI ? " lt" : ""}" d="${sector(65, 103, a0 + 2.2, a1 - 2.2)}"/>`);
+    o.push(`<g class="cf-k${n >= 0 ? " fam" : ""}${onO ? " on" : ""}${isNow(pc, "o") ? " now" : ""}" data-pc="${pc}" data-q="maj" tabindex="0" role="button" aria-label="${mj}"><path d="${sector(106, 152, a0, a1)}"/></g>`);
+    o.push(`<g class="cf-k${n >= 0 ? " fam" : ""}${onI ? " on" : ""}${isNow(m, "i") ? " now" : ""}" data-pc="${m}" data-q="min" tabindex="0" role="button" aria-label="${mn}"><path d="${sector(62, 106, a0, a1)}"/></g>`);
+    lab.push(`<g class="cf-t${onO ? " on" : ""}"><text class="mj" ${at(131, d, n >= 0 ? -5 : 0)}>${mj}</text>${n >= 0 ? `<text class="rn" ${at(131, d, 12)}>${romanD(mod(pc - K.t), degOf(pc), "maj")}</text>` : ""}</g>`
+      + `<g class="cf-t${onI ? " on" : ""}"><text class="mn" ${at(86, d, n >= 0 ? -5 : 0)}>${mn}</text>${n >= 0 ? `<text class="rn" ${at(86, d, 10)}>${romanD(mod(m - K.t), degOf(m), "min")}</text>` : ""}</g>`);
+  });
+  if (PL) {
+    /* the playing progression, cell to cell; m7♭5 has no cell and is skipped */
+    const pts = progGroups(PROG(PL.id)).map(([st]) => { const pc = mod(PL.t + st[0]), g = cfRing(st[1]);
+      if (!g) return null;
+      const i = COF.findIndex(x => (g === "o" ? x : mod(x + 9)) === pc);
+      return P(g === "o" ? 129 : 84, i * 30 - 90); }).filter(Boolean);
+    o.push(`<polyline class="cf-path" points="${pts.join(" ")}"/>`);
+  }
+  o.push(...lab);   /* names over the path */
+  const cn = chordName(S.root, S.q), tn = K ? rootName(K.t, K.minor ? "min" : "maj") : "", kn = K ? rootName(K.k, "maj") : "";
+  o.push(`<g class="cf-mid"><text class="k" x="${c}" y="${c - 7}">${K ? tn + (K.minor ? "m" : "") : cn}</text><text class="s" x="${c}" y="${c + 19}">${K ? modeName(K.mode) : T("be tonacijos", "no key")}</text></g>`);
+  $("cof").innerHTML = o.join("");
+
+  if (K) {
+    const i = ki, sig = i === 0 ? T("be ženklų", "no sharps or flats") : i <= 6 ? `${i} ♯: ${SHARPS.slice(0, i).join(" ")}` : `${12 - i} ♭: ${FLATS.slice(0, 12 - i).join(" ")}`;
+    $("cofKey").textContent = $("cofSum").textContent = `${tn} ${modeName(K.mode)}`;
+    $("cofSig").textContent = sig + (i === 6 ? T(" (arba G♭: 6 ♭)", " (or G♭: 6 ♭)") : "");
+    /* the key's seven chords, starting from the chosen one, in its own letters (F♯ major has D♯m and E♯m7♭5) */
+    const list = DIA.map(([iv, q]) => [mod(K.k + iv), q]), s0 = list.findIndex(([pc]) => pc === K.t);
+    $("cofDeg").innerHTML = list.slice(s0).concat(list.slice(0, s0)).map(([pc, q], j) => {
+      const iv = mod(pc - K.t), on = pc === look.pc && (q === "m7b5" ? look.q === "m7b5" : look.q !== "m7b5" && fam(look.q) === q);
+      return `<button data-pc="${pc}" data-q="${q}" aria-pressed="${on}"${j ? "" : ' class="ton"'}><small>${romanD(iv, j + 1, q)}</small>${nameAt(K.t, K.minor ? "min" : "maj", iv, j + 1)}${CH[q].suf}</button>`;
+    }).join("");
+    $("cofNote").textContent = K.mode === "ion" ? ""
+      : K.mode === "aeo" ? T(`${tn} minoras naudoja tas pačias natas kaip ${kn} mažoras (paralelinė tonacija), todėl ir akordai tie patys, tik skaičiuojami nuo ${tn}m.`,
+          `${tn} minor uses the same notes as ${kn} major (its relative), so the chords are the same, counted from ${tn}m.`)
+      : T(`${tn} ${modeName(K.mode)} naudoja ${kn} mažoro natas, todėl akordai paimti iš ${kn} mažoro, o skaičiuojami nuo ${cn}.`,
+          `${tn} ${modeName(K.mode)} uses the notes of ${kn} major, so the chords come from ${kn} major, counted from ${cn}.`);
+  } else {
+    $("cofKey").textContent = $("cofSum").textContent = cn; $("cofSig").textContent = ""; $("cofDeg").innerHTML = "";
+    $("cofNote").textContent = S.q === "m7b5"
+      ? T(`${cn} retai būna pagrindinis akordas: dažniausiai jis eina II laipsniu minore, prieš V7. Pasirink Locrian ir įjunk „Pagal gamą“, kad ratas skaičiuotų nuo jo.`, `${cn} is rarely home: it usually works as the II of a minor key, before the V7. Pick Locrian and turn on “Follow the scale” to count from it.`)
+      : T(`${cn} yra simetriškas akordas: jis nepriklauso vienai tonacijai, todėl ratas jo nežymi.`, `${cn} is symmetric: it belongs to no single key, so the circle doesn’t mark it.`);
+  }
+  drawDom();
+  const sw = $("cofScaleSw"); sw.setAttribute("aria-pressed", String(S.cofScale)); sw.classList.toggle("off", PARENT[S.set] == null);
+  $("cofAbout").textContent = T("Pagal laikrodžio rodyklę kiekvienas žingsnis yra kvinta aukštyn ir vienas ♯ daugiau. Pažymėti šeši gretimi langeliai yra vienos tonacijos akordai, o skaičiai rodo, kuriuo laipsniu kiekvienas stovi nuo pasirinkto akordo: jis visada I. Bakstelėk langelį ar akordą, kad jį pasirinktum.",
+    "Clockwise, each step is a fifth up and one more ♯. The six shaded neighbouring cells are one key’s chords, and the numerals count each one from the chosen chord: that one is always I. Tap a cell or a chord to pick it.");
+}
+
+/* ---------- progressions: well-worn chord sequences counted from the chosen chord, played round and round to solo over.
+   A major (or dominant) chord gets the major ones, a minor chord the minor ones; steps are semitones from it */
+const PROGS = {
+  maj: [
+    { id: "pop", n: "Pop", lt: "Dažniausia šių dienų popmuzikos seka", en: "The most common sequence in today’s pop", s: [[0, "maj"], [7, "maj"], [9, "min"], [5, "maj"]] },
+    { id: "fifties", n: "Fifties", lt: "Penktojo dešimtmečio baladės ir doo-wop", en: "Fifties ballads and doo-wop", s: [[0, "maj"], [9, "min"], [5, "maj"], [7, "maj"]] },
+    { id: "rock", n: "Rock", lt: "Rokas, folkas, kantri: trys pagrindiniai akordai", en: "Rock, folk, country: the three main chords", s: [[0, "maj"], [5, "maj"], [7, "maj"], [5, "maj"]] },
+    { id: "mixrock", n: "Mixolydian rock", lt: "Klasikinis rokas su ♭VII: Sweet Home Alabama, Hey Jude koda", en: "Classic rock with the ♭VII", s: [[0, "maj"], [10, "maj"], [5, "maj"], [0, "maj"]] },
+    { id: "jazz", n: "Jazz II–V–I", lt: "Džiazo pagrindas: septakordai", en: "The backbone of jazz, in sevenths", s: [[2, "m7"], [7, "dom7"], [0, "maj7"], [0, "maj7"]] },
+    { id: "blues", n: "12-bar blues", lt: "Bliuzas: 12 taktų, visi dominantiniai septakordai", en: "Blues: 12 bars, all dominant sevenths", s: [[0, "dom7"], [0, "dom7"], [0, "dom7"], [0, "dom7"], [5, "dom7"], [5, "dom7"], [0, "dom7"], [0, "dom7"], [7, "dom7"], [5, "dom7"], [0, "dom7"], [7, "dom7"]] },
+    { id: "canon", n: "Canon", lt: "Pachelbelio kanono seka: boso linija leidžiasi žingsniais", en: "Pachelbel’s Canon: the bass steps down", s: [[0, "maj"], [7, "maj"], [9, "min"], [4, "min"], [5, "maj"], [0, "maj"], [5, "maj"], [7, "maj"]] },
+    { id: "circle", n: "Circle", lt: "Visi septyni tonacijos akordai kvintų ratu: kiekvienas žingsnis yra kvinta žemyn", en: "All seven chords of the key round the circle: each step a fifth down", s: [[0, "maj7"], [5, "maj7"], [11, "m7b5"], [4, "m7"], [9, "m7"], [2, "m7"], [7, "dom7"], [0, "maj7"]] },
+    { id: "turn", n: "Turnaround", lt: "Džiazo ir svingo apsisukimas atgal į pradžią", en: "The jazz and swing turn back to the top", s: [[0, "maj7"], [9, "m7"], [2, "m7"], [7, "dom7"]] },
+    { id: "royal", n: "Royal road", lt: "Japonų popmuzikos (J-pop) mėgstamiausia seka", en: "The favourite sequence of Japanese pop (J-pop)", s: [[5, "maj7"], [7, "dom7"], [4, "m7"], [9, "min"]] },
+    { id: "lydvamp", n: "Lydian vamp", lt: "Du mažoriniai akordai tonu vienas nuo kito: svajingas lidinis skambesys", en: "Two major chords a tone apart: the dreamy Lydian sound", s: [[0, "maj"], [2, "maj"], [0, "maj"], [2, "maj"]] }
+  ],
+  min: [
+    { id: "popm", n: "Pop minor", lt: "Popmuzikos seka nuo minoro: liūdnesnė", en: "The pop sequence from the minor: sadder", s: [[0, "min"], [8, "maj"], [3, "maj"], [10, "maj"]] },
+    { id: "epic", n: "Epic", lt: "Kino ir metalo seka: kyla į ♭VII ir grįžta", en: "Film and metal: rises to the ♭VII and back", s: [[0, "min"], [8, "maj"], [10, "maj"], [0, "min"]] },
+    { id: "andal", n: "Andalusian", lt: "Flamenko ir roko seka žemyn, su mažoriniu V", en: "Flamenco and rock, stepping down to a major V", s: [[0, "min"], [10, "maj"], [8, "maj"], [7, "maj"]] },
+    { id: "mrock", n: "Minor rock", lt: "Trys minoriniai akordai: Im, IVm, Vm", en: "Three minor chords: Im, IVm, Vm", s: [[0, "min"], [5, "min"], [7, "min"], [5, "min"]] },
+    { id: "mjazz", n: "Jazz II–V–I minor", lt: "Minorinis džiazo posūkis: IIm7♭5, V7, Im", en: "The minor jazz turn: IIm7♭5, V7, Im", s: [[2, "m7b5"], [7, "dom7"], [0, "m7"], [0, "m7"]] },
+    { id: "mblues", n: "Minor blues", lt: "Minorinis bliuzas: 12 taktų, V7 su mažorine terca", en: "Minor blues: 12 bars, a V7 with a major third", s: [[0, "m7"], [0, "m7"], [0, "m7"], [0, "m7"], [5, "m7"], [5, "m7"], [0, "m7"], [0, "m7"], [7, "dom7"], [5, "m7"], [0, "m7"], [7, "dom7"]] },
+    { id: "mcad", n: "Minor cadence", lt: "Klasikinė minoro kadencija su harmoninio minoro V7", en: "The classic minor cadence, with the harmonic-minor V7", s: [[0, "min"], [5, "min"], [7, "dom7"], [0, "min"]] },
+    { id: "aeovamp", n: "Aeolian vamp", lt: "Eolinė sūpuoklė: All Along the Watchtower", en: "The Aeolian rocker: All Along the Watchtower", s: [[0, "min"], [10, "maj"], [8, "maj"], [10, "maj"]] },
+    { id: "dorvamp", n: "Dorian vamp", lt: "Dorinė sūpuoklė su mažoriniu IV: Oye Como Va", en: "The Dorian rocker with a major IV: Oye Como Va", s: [[0, "m7"], [5, "dom7"], [0, "m7"], [5, "dom7"]] },
+    { id: "phrvamp", n: "Phrygian vamp", lt: "Frigiška sūpuoklė pustoniu aukštyn: ispaniškas ir metalo skambesys", en: "The Phrygian rocker a semitone up: Spanish and metal", s: [[0, "min"], [1, "maj"], [0, "min"], [1, "maj"]] },
+    { id: "mcircle", n: "Minor circle", lt: "Minoro akordai kvintų ratu, kaip Autumn Leaves", en: "The minor key round the circle, as in Autumn Leaves", s: [[0, "m7"], [5, "m7"], [10, "dom7"], [3, "maj7"], [8, "maj7"], [2, "m7b5"], [7, "dom7"], [0, "m7"]] }
+  ]
+};
+const PROG = id => PROGS.maj.concat(PROGS.min).find(p => p.id === id);
+const cfRing = q => q === "m7b5" || q === "dim7" ? null : fam(q) === "min" ? "i" : "o";
+/* runs of the same chord become one entry with a count: the blues reads I7 ×4 · IV7 ×2 · ... */
+const progGroups = P => P.s.reduce((a, st, i) => { const l = a[a.length - 1]; if (l && l[0][0] === st[0] && l[0][1] === st[1]) l[1]++; else a.push([st, 1, i]); return a; }, []);
+const progChord = i => { const st = PROG(PL.id).s[i]; return { pc: mod(PL.t + st[0]), q: st[1] }; };
+/* the tonic the list counts from: fixed while one plays, else the chosen chord (a tapped chord is only looked at, see VIEW) */
+const progCtx = () => PL ? { t: PL.t, minor: PL.minor } : (K => K && { t: K.t, minor: K.minor })(cofKey());
+const BPM = 96;
+let PL = null;   /* playing: { id, t (tonic), minor, i (next bar), cur (bar sounding), tm (timer) } */
+/* a grip for any chord on the current instrument: the lowest playable one, found the same way as the chord card's */
+const VOI = new Map();
+function voicing(pc, q) {
+  const key = [pc, q, S.inst, S.tun].join();
+  if (VOI.has(key)) return VOI.get(key);
+  const r0 = S.root, q0 = S.q; let v = null;
+  S.root = pc; S.q = q;
+  try { for (let lo = 0; lo <= 9 && !v; lo++) v = chordAt(lo, lo + 3); } finally { S.root = r0; S.q = q0; }
+  VOI.set(key, v); return v;
+}
+function progStop() { if (!PL) return; clearTimeout(PL.tm); PL = null; drawProg(); drawCof(); drawFolds(); }
+function progPlay(id) {
+  const same = PL && PL.id === id, ctx = progCtx();
+  progStop();
+  if (same || !ctx || !audio()) return;
+  PL = { id, t: ctx.t, minor: ctx.minor, i: 0, cur: null, tm: 0 };
+  progBar();
+}
+/* a run-through: one downstroke per chord on each quarter note, once; the last chord rings for two beats */
+function progBar() {
+  const P = PROG(PL.id), i = PL.i, last = i === P.s.length - 1, { pc, q } = progChord(i), v = voicing(pc, q), beat = 60 / BPM;
+  if (v) {
+    const t0 = ac.currentTime + .03, pl = []; for (let s = N - 1; s >= 0; s--) if (v[s] != null) pl.push(s);
+    pl.forEach((s, j) => pluck(s, OPEN[s] + v[s], t0 + j * .02, last ? .85 : .75));
+  }
+  blink();
+  PL.cur = i; PL.i++;
+  drawProg(); drawCof(); drawFolds();
+  PL.tm = setTimeout(last ? progStop : progBar, (last ? 2.5 : 1) * beat * 1000);
+}
+function drawProg() {
+  const X = progCtx();
+  if (!X) {
+    $("progList").innerHTML = "";
+    $("progAbout").textContent = T(`${chordName(S.root, S.q)} neturi savo tonacijos. Sekos skaičiuojamos nuo mažorinio arba minorinio akordo: pasirink tokį.`, `${chordName(S.root, S.q)} has no key of its own. The sequences count from a major or a minor chord: pick one.`);
+    $("progSum").textContent = "";
+    return;
+  }
+  const fq = X.minor ? "min" : "maj", tn = rootName(X.t, fq) + (X.minor ? "m" : "");
+  const name = (iv, q) => nameAt(X.t, fq, iv, DEGI[iv]) + CH[q].suf;
+  $("progList").innerHTML = PROGS[fq].map(P => {
+    const G = progGroups(P), on = PL && PL.id === P.id;
+    const nowG = on && PL.cur != null ? G.findIndex(([, c, at]) => PL.cur >= at && PL.cur < at + c) : -1;
+    const rn = G.map(([st, c]) => roman(st[0], st[1]) + (c > 1 ? `×${c}` : "")).join("–");
+    const play = on ? T(`Sustabdyti ${P.n}`, `Stop ${P.n}`) : T(`Groti ${P.n}`, `Play ${P.n}`);
+    return `<div class="prow"><button class="pplay" data-prog="${P.id}" aria-pressed="${on}" aria-label="${esc(play)}" data-tip="${esc(play)}">`
+      + `<svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>`
+      + `<div class="pinfo" data-tip="${esc(T(P.lt, P.en))}"><b>${P.n}</b><small>${rn}</small></div>`
+      + `<div class="seg pch" role="group" aria-label="${esc(P.n)}">` + G.map(([st, c], gi) => { const pc = mod(X.t + st[0]);
+        return `<button data-pc="${pc}" data-q="${st[1]}" class="${[st[0] ? "" : "ton", gi === nowG ? "now" : ""].join(" ").trim()}" aria-pressed="${VIEW ? pc === VIEW.pc && st[1] === VIEW.q : pc === S.root && st[1] === S.q}">${name(st[0], st[1])}${c > 1 ? `<span class="x">×${c}</span>` : ""}</button>`; }).join("") + "</div></div>";
+  }).join("");
+  $("progAbout").textContent = T(`Populiarios akordų sekos nuo ${tn}: pasirinktas akordas visada yra I. ▶ pagroja seką vieną kartą, po akordą kiekvienai ketvirtinei. Bakstelėjęs akordą matysi jo natas grife.`,
+    `Popular chord sequences from ${tn}: the chosen chord is always I. ▶ plays the sequence once, one chord per quarter note. Tap a chord to see its notes on the neck.`);
+  $("progSum").textContent = PL ? `▶ ${PROG(PL.id).n} · ${tn}` : T(`Nuo ${tn}`, `From ${tn}`);
+}
+
+const FOLDS = ["chord", "info", "tab", "cof", "prog", "tun"].map(n => [n + "Head", n + "Body", n + "Open"]);
+function drawFolds() {
+  for (const [h, b, k] of FOLDS) { $(h).setAttribute("aria-expanded", String(S[k])); $(b).hidden = !S[k]; }
+  /* what a folded panel holds, in one line */
+  $("chordSum").textContent = `${chordName(S.root, S.q)} · ${$("scaleTitle").textContent}`;
+  $("infoSum").textContent = $("about").textContent.split(/(?<=[.!?])\s/)[0];
+  $("tabSum").textContent = `${$("tabTitle").textContent} ${$("formN").textContent} · ${$("tabRange").textContent} · ${chordName(S.root, S.q)} ${T("akordas", "chord")}`;
+}
+for (const [h, , k] of FOLDS) $(h).addEventListener("click", () => { S[k] = !S[k]; drawFolds(); save(); });
+
 function render(scrollToBox) {
   if (seqT.length) stopSeq();
+  if (VIEW && (VIEW.root !== S.root || VIEW.cq !== S.q)) VIEW = null;   /* a new chord chosen anywhere: stop looking */
   fixSet();
   B = forms();
   if (S.box >= B.length) S.box = -1;
-  drawRoots(); drawControls(); drawHead(); drawBoard(); drawAbout(); drawLegend(); drawTab(); drawTuning();
+  drawRoots(); drawControls(); drawHead(); drawBoard(); drawAbout(); drawLegend(); drawTab(); drawTuning(); drawCof(); drawProg(); drawFolds();
   if (scrollToBox && formSel() && !isPair()) {
     const I = B[S.box].inst[0], el = $("board");
     if (el.scrollWidth > el.clientWidth) {
@@ -1724,10 +2080,29 @@ function render(scrollToBox) {
 
 const onBtn = (id, fn) => $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (b) fn(b); });
 onBtn("roots", b => { S.root = +b.dataset.pc; render(true); });
-onBtn("qSeg", b => { S.q = b.dataset.v; render(true); });
+onBtn("qSeg", b => { if (b.dataset.more) { S.moreQ = !S.moreQ; render(); return; } S.q = b.dataset.v; render(true); });
 onBtn("scaleSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
 onBtn("ivSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
 onBtn("labSeg", b => { S.labels = b.dataset.v; render(); });
+onBtn("cofDeg", b => cofPick(+b.dataset.pc, b.dataset.q));
+$("cofScaleSw").addEventListener("click", () => { S.cofScale = !S.cofScale; render(); });
+$("cofDom").addEventListener("click", () => {
+  const D = domTarget(); if (!D) return;
+  domFrom = D.res ? null : { pc: S.root, q: S.q };
+  S.root = D.pc; S.q = D.q; S.box = -1; render(true);
+});
+$("progList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.prog) { progPlay(b.dataset.prog); return; }
+  const pc = +b.dataset.pc, q = b.dataset.q, again = VIEW && VIEW.pc === pc && VIEW.q === q;
+  VIEW = again || (pc === S.root && q === S.q) ? null : { pc, q, root: S.root, cq: S.q };
+  render();
+});
+$("cof").addEventListener("click", e => { const g = e.target.closest(".cf-k"); if (g) cofPick(+g.dataset.pc, g.dataset.q); });
+$("cof").addEventListener("keydown", e => { const g = e.target.closest(".cf-k"); if (g && (e.key === "Enter" || e.key === " ")) {
+  e.preventDefault(); const { pc, q } = g.dataset; cofPick(+pc, q);
+  const n = $("cof").querySelector(`.cf-k[data-pc="${pc}"][data-q="${q}"]`); if (n) n.focus();   /* the redraw would drop focus */
+} });
 $("blueSw").addEventListener("click", () => { S.blue = !S.blue; render(); });
 onBtn("instSeg", b => { if (S.inst === b.dataset.v) return; S.inst = b.dataset.v; S.tun = "std"; S.box = -1; applyTuning(); render(true); });
 onBtn("tunSeg", b => { if (S.tun === b.dataset.v) return; S.tun = b.dataset.v; applyTuning(); render(true); });
@@ -1943,6 +2318,13 @@ const STATIC = [
   ["labNames", "text", "Natos", "Notes"], ["labNames", "tip", "Ant natų rašyti pavadinimus (A, C, E)", "Show note names (A, C, E)"],
   ["labInts", "text", "Intervalai", "Intervals"], ["labInts", "tip", "Ant natų rašyti intervalus (R, ♭3, 5)", "Show intervals (R, ♭3, 5)"],
   ["legendTitle", "text", "Natų reikšmė", "What the notes do"],
+  ["tunHeadL", "text", "Instrumentas ir derinimas", "Instrument and tuning"], ["tunPanel", "aria", "Instrumentas ir derinimas", "Instrument and tuning"],
+  ["progPanel", "aria", "Progressions", "Progressions"],
+  ["chordHeadL", "text", "Akordas ir gama", "Chord and scale"], ["chordPanel", "aria", "Akordas ir gama", "Chord and scale"],
+  ["infoHeadL", "text", "Paaiškinimai", "Explanations"], ["infoPanel", "aria", "Paaiškinimai", "Explanations"],
+  ["tabHeadL", "text", "Tabai", "Tabs"], ["tabPanel", "aria", "Tabai", "Tabs"],
+  ["cofScaleTxt", "text", "Pagal gamą", "Follow the scale"], ["cofScaleSw", "tip", "Tonaciją rodyti pagal pasirinktą gamą (A Dorian → G mažoras), ne pagal akordą", "Take the key from the chosen scale (A Dorian → G major), not from the chord"],
+  ["cofDeg", "aria", "Tonacijos akordai", "Chords of the key"],
   ["formNav", "aria", "Forma", "Shape"], ["formPrev", "label", "Ankstesnė forma", "Previous shape"], ["formNext", "label", "Kita forma", "Next shape"],
   ["chordNav", "aria", "Akordo pozicija", "Chord position"], ["chordPrev", "label", "Žemesnė pozicija", "Lower position"], ["chordNext", "label", "Aukštesnė pozicija", "Higher position"]
 ];
