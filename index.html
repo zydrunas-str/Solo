@@ -158,6 +158,7 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .pair line{stroke-width:14;stroke-linecap:round;stroke-opacity:.38}
 .pair.b0 line{stroke:var(--b1)}.pair.b1 line{stroke:var(--b2)}.pair.b2 line{stroke:var(--b3)}.pair.b3 line{stroke:var(--b4)}.pair.b4 line{stroke:var(--b5)}
 .pair.sel line{stroke:var(--accent);stroke-opacity:.7}
+.pair.w line{stroke-width:8;stroke-opacity:.2}.pair.sel.w line{stroke-opacity:.38}
 .box.sel path{fill:var(--accent);stroke:var(--accent);fill-opacity:.15;stroke-opacity:.95;stroke-width:2}
 .blab{cursor:pointer}
 .blab circle{fill:var(--screen);stroke-width:1.5}
@@ -435,6 +436,9 @@ pre.tab .t-name{color:var(--screen-dim)}
     <div class="ctl">
       <button class="switch" id="groupSw" aria-pressed="true"><i></i><span id="groupTxt">Formos</span></button>
       <div class="seg" id="boxSeg"></div>
+    </div>
+    <div class="ctl" id="npsCtl"><span class="ctl-l" id="npsL">Natų stygoje</span>
+      <div class="seg" id="npsSeg" role="group" aria-label="Natų stygoje"></div>
     </div>
     <div class="ctl"><span class="ctl-l" id="labL">Žymės</span>
       <div class="seg" id="labSeg"><button data-v="names" id="labNames">Natos</button><button data-v="ints" id="labInts">Intervalai</button></div>
@@ -1099,6 +1103,27 @@ const SETS = {
   p8: { q: "*", kind: "pair", btn: "Oktavos", name: "oktavos", btn_en: "Octaves", name_en: "octaves",
     about_en: "The same note an octave apart. It thickens a melody (Wes Montgomery style) and quickly finds the Root anywhere on the neck.", iv: 12, lab: "R", deg: 1, pairs: [[5,3],[4,2],[3,1],[2,0]],
     about: "Ta pati nata per oktavą. Ja storinama melodija (Wes Montgomery stilius), be to, taip greitai randamas Root visame grife." },
+  /* diatonic double stops: every note of the parent scale with the note dia scale steps above it (dia = steps, in a
+     7-note scale; other sizes scale it), so major and minor intervals alternate as the scale dictates. near: the
+     interval in half steps the string pair is picked for (the closest gap wins) */
+  p2: { q: "*", kind: "pair", sc: true, dia: 1, near: 1.5, btn: "Sekundos", name: "sekundos", btn_en: "Seconds", name_en: "seconds",
+    about: "Dvi gretimos gamos natos kartu, gretimose stygose. Aštri, trinanti spalva: geriausiai skamba trumpai, kaip akcentas, arba su atvira styga. Kantri, folkas, modernus rokas.",
+    about_en: "Two neighbouring scale notes together, on neighbouring strings. A sharp, rubbing colour: it sounds best short, as an accent, or against an open string. Country, folk, modern rock." },
+  p3: { q: "*", kind: "pair", sc: true, dia: 2, near: 3.5, btn: "Tercijos", name: "tercijos", btn_en: "Thirds", name_en: "thirds",
+    about: "Gamos natos poromis per terciją, gretimose stygose. Didžiosios ir mažosios tercijos keičiasi taip, kaip lemia gama. Saldus, dainingas skambesys: kantri, soulas, popsas.",
+    about_en: "Scale notes in pairs a third apart, on neighbouring strings. Major and minor thirds alternate as the scale dictates. A sweet, singing sound: country, soul, pop." },
+  p6: { q: "*", kind: "pair", sc: true, dia: 5, near: 8.5, btn: "Sekstos", name: "sekstos", btn_en: "Sixths", name_en: "sixths",
+    about: "Gamos natos poromis per sekstą, tarp jų viena styga: ją prislopinkite. Seksta yra apversta tercija: apatinė nata pakelta oktava aukštyn. Soulo ir R&B gitara, kantri.",
+    about_en: "Scale notes in pairs a sixth apart, with one string between them: mute it. A sixth is a third turned over: the lower note moved up an octave. Soul and R&B guitar, country." },
+  p7: { q: "*", kind: "pair", sc: true, dia: 6, near: 10.5, btn: "Septimos", name: "septimos", btn_en: "Sevenths", name_en: "sevenths",
+    about: "Gamos natos poromis per septimą, tarp jų viena styga: ją prislopinkite. Septima įtempta: nuleiskite viršutinę natą per sekundą, ir dvigarsis išsispręs į sekstą. Džiazo ir bliuzo spalva.",
+    about_en: "Scale notes in pairs a seventh apart, with one string between them: mute it. A seventh is tense: lower the top note by a step and the double stop resolves to a sixth. A jazz and blues colour." },
+  tri: { q: "*", kind: "pair", sc: true, semi: 6, near: 6, btn: "Tritonai", name: "tritonai", btn_en: "Tritones", name_en: "tritones",
+    about: "Dvi gamos natos per tris tonus: tritonas, pats įtempčiausias intervalas, kuris nori išsispręsti. Ant 7 akordo tai 3 ir ♭7, akordo esmė: slinkite šį dvigarsį pustoniu žemyn ar aukštyn, ir išgirsite funk ar bliuzo judesį.",
+    about_en: "Two scale notes three whole steps apart: the tritone, the most tense interval, and it wants to resolve. Over a 7 chord it is the 3 and ♭7, the heart of the chord: slide this double stop a half step down or up for a funk or blues move." },
+  p10: { q: "*", kind: "pair", sc: true, dia: 9, near: 15.5, btn: "Decimos", name: "decimos", btn_en: "Tenths", name_en: "tenths",
+    about: "Tercija ir dar oktava: tarp natų dvi stygos. Grokite pirštais, tarpines stygas prislopinkite. Platus, pilnas skambesys: apatinė nata skamba kaip bosas, viršutinė kaip melodija. Kongo rumba, džiazo ir fingerstyle gitara.",
+    about_en: "A third plus an octave, with two strings between the notes. Play them with your fingers and mute the strings in between. A wide, full sound: the low note works as the bass, the high one as the melody. Congolese rumba, jazz and fingerstyle guitar." },
   /* CAGED: the chord tones in the five open-chord shapes moved up the neck; shown only where it holds (cagedOK) */
   caged: { q: "*", kind: "arp", cg: true, btn: "CAGED", name: "CAGED",
     about: "Penkios akordo formos, pavadintos pagal atvirus C, A, G, E ir D akordus. Grife jos eina viena po kitos ratu ir dalijasi kraštinėmis natomis, todėl kartu uždengia visą grifą. Bakstelėk formą: ji liks ryški, o po grifu matysite jos akordą.",
@@ -1123,7 +1148,9 @@ function cagedOK() {
   if (N < 6 || REENT || MINF.some(m => m)) return false;
   return [5, 4, 5, 5, 5].every((g, s) => OPEN[s] - OPEN[s + 1] === g);
 }
-const ivList = () => cagedOK() ? ORDER.iv.concat("caged") : ORDER.iv;
+/* a diatonic interval shows only where the strings allow it (tenths need two strings between the notes) */
+const ivOK = id => !SETS[id].sc || pairForms(SETS[id]).length > 0;
+const ivList = () => ORDER.iv.filter(ivOK).concat(cagedOK() ? ["caged"] : []);
 const ORDER = {
   min: ["mpent", "aeo", "dor", "phr", "harm", "mel"], maj: ["Mpent", "ion", "lyd", "mix"],
   dom7: ["mix", "mpent", "Mpent", "lyddom"], dom9: ["mix", "Mpent", "mpent", "lyddom"],
@@ -1131,13 +1158,21 @@ const ORDER = {
   m7b5: ["loc", "loc2"], dim7: ["dimwh"], aug: ["wt"], sus4: ["mix", "mpent", "ion"], alt: ["alt", "mpent"],
   d7s4: ["mix", "mpent"], six: ["Mpent", "ion", "lyd"], m6: ["dor", "mel", "mpent"],
   add9: ["ion", "Mpent", "lyd"], maj9: ["ion", "lyd", "Mpent"], m11: ["dor", "aeo", "mpent"], dom13: ["mix", "Mpent", "mpent", "lyddom"],
-  iv: ["arp", "p5", "p4", "p8"]
+  iv: ["arp", "p2", "p3", "p4", "tri", "p5", "p6", "p7", "p8", "p10"]
 };
 const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
-const SET = () => { const st = SETS[S.set], o = ctxOf(st, S.q); return o ? Object.assign({}, st, o) : st; };
+const withCtx = id => { const st = SETS[id], o = ctxOf(st, S.q); return o ? Object.assign({}, st, o) : st; };
+const SET = () => withCtx(S.set);
+/* the scale a diatonic interval is built from: the last scale chosen (or its major/minor twin) if this chord offers it
+   and it has 6 notes or more, else the chord's first such scale */
+function pscaleId() {
+  const ok = id => id && ORDER[S.q].includes(id) && SETS[id].deg.length >= 6;
+  return [S.pscale, QMAP[S.pscale]].find(ok) || ORDER[S.q].find(ok);
+}
+const PSET = () => withCtx(pscaleId());
 
 /* ---------- state */
-const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", inst: "g6", tun: "std", chordOpen: true, infoOpen: false, tabOpen: false, cofOpen: false, progOpen: false, tunOpen: false, moreQ: false, cofScale: true };
+const DEF = { root: 9, q: "min", set: "mpent", blue: false, group: true, box: -1, labels: "names", inst: "g6", tun: "std", chordOpen: true, infoOpen: false, tabOpen: false, cofOpen: false, progOpen: false, tunOpen: false, moreQ: false, cofScale: true, pscale: "", nps: 0 };
 const S = Object.assign({}, DEF);
 try {
   const v = JSON.parse(localStorage.getItem("lempinio-solo-v1") || "null");
@@ -1149,7 +1184,8 @@ try {
 function fixSet() {
   if (!CH[S.q]) S.q = "min";
   const list = ORDER[S.q];
-  if (S.set === "caged") { if (!cagedOK()) S.set = "arp"; return; }   /* not here: the chord tones stay, as an arpeggio */
+  if (S.set === "caged") { if (!cagedOK()) S.set = "arp"; return; }
+  if (SETS[S.set] && SETS[S.set].sc && !ivOK(S.set)) { S.set = "arp"; return; }   /* not here: the chord tones stay, as an arpeggio */
   if (ORDER.iv.includes(S.set) || list.includes(S.set)) return;
   S.set = list.includes(QMAP[S.set]) ? QMAP[S.set] : list[0];
 }
@@ -1182,7 +1218,7 @@ const chOf = st => st.ch.filter(i => !chordIvs().includes(i));
 
 /* every interval the fretboard shows for the current set: label, category and spelled name */
 function degMap() {
-  const st = SET(), r = S.root, m = new Map();
+  const st0 = SET(), st = st0.sc ? PSET() : st0, r = S.root, m = new Map();
   const add = (iv, l, c, d) => m.set(mod(iv), { l, c, name: nameAt(r, S.q, iv, d || degNum(l)) });
   const T = chordIvs(), CT = new Map(CH[S.q].tones.map(([i, l, d]) => [i, [l, d]]));
   if (st.kind === "scale") {
@@ -1190,7 +1226,7 @@ function degMap() {
       const ct = CT.get(iv);
       add(iv, ct ? ct[0] : l, iv === 0 ? "root" : ct ? "strong" : st.ch.includes(iv) ? "char" : "weak", ct ? ct[1] : d);
     }
-    if (S.blue && st.blue) add(st.blue[0], st.blue[1], "blue");
+    if (S.blue && st.blue && !st0.sc) add(st.blue[0], st.blue[1], "blue");
   } else if (st.kind === "arp") {
     for (const [iv, l, d] of CH[S.q].tones) add(iv, l, iv === 0 ? "root" : "strong", d);
   } else {
@@ -1216,15 +1252,24 @@ function npsOf(n) {
     return g === 4 || g === 5 ? n : Math.max(1, Math.round(n * g / 5));
   });
 }
+/* how a scale is split over the strings: 2, 3 or 4 notes per string, or 1 = a position (about 4 frets, 2 or 3 per string).
+   S.nps 0 = the scale's own default (2 for 5- and 6-note scales, 3 for 7- and 8-note ones); 4 and positions for 7 notes up */
+const npsDef = st => st.deg.length <= 6 ? 2 : 3;
+const npsOpts = st => REENT || st.kind !== "scale" ? [] : st.deg.length >= 7 ? [2, 3, 4, 1] : [2, 3];
+const npsCur = st => { const o = npsOpts(st); return !o.length ? 0 : o.includes(S.nps) ? S.nps : npsDef(st); };
 function scaleForms(st) {
   if (REENT) return posForms(st.deg.map(d => d[0]));
-  const r = S.root, P = st.deg.map(d => d[0]), nps = npsOf(P.length <= 6 ? 2 : 3), pitches = [], low = N - 1;
+  const k = npsCur(st);
+  if (k === 1) return positionForms(st);
+  /* more notes per string than usual climb past fret 17: such a shape is kept if 4 strings or more fit */
+  const part = k > npsDef(st);
+  const r = S.root, P = st.deg.map(d => d[0]), nps = npsOf(k), pitches = [], low = N - 1;
   for (let m = OPEN[low]; m <= OPEN[0] + MAXF + 12; m++) if (P.includes(mod(m - r))) pitches.push(m);
   return renumber(P.map((iv, k) => {
     const m0 = OPEN[low] + mod(r + iv - OPEN[low]), inst = [];
     for (const off of [0, 12]) {
       let i = pitches.indexOf(m0 + off); if (i < 0) continue;
-      const strings = []; let ok = true;
+      const strings = []; let done = 0, ok = true;
       for (let s = low; s >= 0 && ok; s--) {
         const fr = [];
         for (let t = 0; t < nps[s]; t++, i++) {
@@ -1233,11 +1278,43 @@ function scaleForms(st) {
           fr.push(f);
         }
         strings[s] = fr;
+        if (ok) done++;
       }
+      if (!ok && part && done >= 4) { for (let s = 0; s < N; s++) strings[s] = strings[s] || []; ok = true; }
       if (ok) inst.push(shape(strings));
     }
     return { k, inst };
   }));
+}
+/* positions: the index finger on a scale note of the lowest string, one finger per fret over 4 frets (a..a+3). The scale
+   climbs string by string; a note past the window goes to the next string when it fits there (the index may stretch
+   back one fret). A start a half step above another start gives nearly the same notes, so it is left out:
+   5 positions for a major-type scale */
+function positionForms(st) {
+  const r = S.root, P = st.deg.map(d => d[0]), low = N - 1, pitches = [];
+  for (let m = OPEN[low]; m <= OPEN[0] + MAXF + 1; m++) if (P.includes(mod(m - r))) pitches.push(m);
+  const on = f => P.includes(mod(OPEN[low] + f - r));
+  const starts = [];
+  for (let f = 0; f < 12; f++) if (on(f) && !on(mod(f - 1))) starts.push(f);
+  const walk = a => {
+    const strings = Array.from({ length: N }, () => []);
+    let s = low, i = pitches.indexOf(OPEN[low] + a);
+    if (i < 0) return null;
+    for (;;) {
+      const p = pitches[i]; if (p === undefined) return null;
+      const f = p - OPEN[s];
+      if (f > a + 3) {
+        if (s === 0) break;
+        const g = p - OPEN[s - 1];
+        if (g >= Math.max(a - 1, MINF[s - 1])) { s--; continue; }
+        if (f > a + 5) return null;
+      }
+      if (f > MAXF) return null;
+      strings[s].push(f); i++;
+    }
+    return strings.every(x => x.length) ? shape(strings) : null;
+  };
+  return renumber(starts.map((a, k) => ({ k, inst: [a, a + 12].map(walk).filter(Boolean) })));
 }
 /* a 5-fret position starting on each of the notes on the lowest-pitched string: the arpeggio shapes, and the scale
    shapes of a re-entrant tuning, where "string after string" makes no sense (a ukulele's G sits above its C) */
@@ -1282,6 +1359,7 @@ function cagedForms() {
 /* string pairs, low to high: the neighbouring string if the second note lies within 4 frets, else the string after it
    (octaves on a guitar skip a string; a fifth in fifths tuning is the same fret on the next string) */
 function pairForms(st) {
+  if (st.sc) return diaForms(st);
   const r = S.root, out = [];
   for (let s1 = N - 1; s1 > 0; s1--) {
     if (MINF[s1]) continue;
@@ -1292,6 +1370,31 @@ function pairForms(st) {
     for (let f = 0; f <= MAXF; f++)
       if (mod(OPEN[s1] + f - r) === 0 && f + d >= 0 && f + d <= MAXF) pairs.push({ s1, f1: f, s2, f2: f + d });
     out.push({ k: out.length, label: `${s1 + 1}–${s2 + 1}`, pairs, d, s1, s2 });
+  }
+  return out;
+}
+/* diatonic pairs: each string with the string whose gap is closest to the interval (3 strings up at most), then every
+   scale note on the lower string with the scale note dia steps above it. ct: both notes are chord tones */
+function diaForms(st) {
+  const r = S.root, P = PSET().deg.map(d => d[0]).sort((a, b) => a - b), n = P.length, out = [], CT = chordIvs();
+  const steps = Math.round(st.dia * n / 7);
+  for (let s1 = N - 1; s1 > 0; s1--) {
+    if (MINF[s1]) continue;
+    const cand = [s1 - 1, s1 - 2, s1 - 3].filter(t => t >= 0 && !MINF[t] && OPEN[t] > OPEN[s1]);
+    const s2 = cand.reduce((b, t) => b == null || Math.abs(st.near - (OPEN[t] - OPEN[s1])) < Math.abs(st.near - (OPEN[b] - OPEN[s1])) ? t : b, null);
+    if (s2 == null || Math.abs(st.near - (OPEN[s2] - OPEN[s1])) > 3.5) continue;
+    const gap = OPEN[s2] - OPEN[s1], pairs = [];
+    for (let f = 0; f <= MAXF; f++) {
+      const i = P.indexOf(mod(OPEN[s1] + f - r)); if (i < 0) continue;
+      /* the upper note: dia scale steps up, or a fixed distance (tritone) that must land in the scale */
+      let semis, top;
+      if (st.dia) { const j = i + steps; semis = P[j % n] + 12 * Math.floor(j / n) - P[i]; top = P[j % n]; }
+      else { semis = st.semi; top = mod(P[i] + semis); if (!P.includes(top)) continue; }
+      const f2 = f + semis - gap;
+      if (f2 < MINF[s2] || f2 > MAXF) continue;
+      pairs.push({ s1, f1: f, s2, f2, semis, ct: CT.includes(P[i]) && CT.includes(top) });
+    }
+    if (pairs.length) out.push({ k: out.length, label: `${s1 + 1}–${s2 + 1}`, pairs, s1, s2, gap });
   }
   return out;
 }
@@ -1376,7 +1479,7 @@ function drawBoard() {
       const sel = S.box === F.k;
       if (S.box >= 0 && !sel) return;
       for (const p of F.pairs)
-        o.push(`<g class="pair b${F.k}${sel ? " sel" : ""}" data-box="${F.k}"><line x1="${nx(p.f1).toFixed(1)}" y1="${sy(p.s1)}" x2="${nx(p.f2).toFixed(1)}" y2="${sy(p.s2)}"/></g>`);
+        o.push(`<g class="pair b${F.k}${sel ? " sel" : ""}${p.ct === false ? " w" : ""}" data-box="${F.k}"><line x1="${nx(p.f1).toFixed(1)}" y1="${sy(p.s1)}" x2="${nx(p.f2).toFixed(1)}" y2="${sy(p.s2)}"/></g>`);
     });
   } else if (S.group) {
     const labs = [];
@@ -1438,6 +1541,17 @@ function fretsOf(pcOpen) {
 }
 const row = (b, fr, sub) => `<div class="jrow"><b>${b}</b><span class="fr">${fr}</span><span class="sub">${sub}</span></div>`;
 const pick = (k, t) => `<button data-pick="${k}">${t}</button>`;
+/* what each split is good for: the hover tip (first sentence) and the row under the scale */
+function npsTip(v, st) {
+  const pent = st.deg.length <= 6;
+  return v === 1 ? T("Pozicija: apie 4 ladus, kiekvienas pirštas savo lade, vienose stygose 2 natos, kitose 3. Taip gama geriausiai susiejama su akordu (CAGED), o tempti tenka mažiausiai.",
+      "Position: about 4 frets, one finger per fret, 2 notes on some strings and 3 on others. This ties the scale to the chord best (CAGED) and needs the least stretching.")
+    : v === 2 ? (pent ? T("Po dvi natas stygoje: klasikinės pentatonikos „dėžutės“. Patogu frazuoti ir stumti (bend).", "Two notes per string: the classic pentatonic boxes. Easy to phrase and bend in.")
+      : T("Po dvi natas stygoje: formos tįsta įstrižai, tad padeda judėti grifu horizontaliai. 7 natų gamai tai neįprastas būdas, bet atveria naujų frazių.", "Two notes per string: the shapes run diagonally, so they help you move along the neck. Unusual for a 7-note scale, but it opens up new phrases."))
+    : v === 3 ? (pent ? T("Po tris natas stygoje: dvi gretimos dėžutės sujungtos į vieną įstrižą formą. Greitoms linijoms ir legato; tempti tenka daugiau. Netelpančios formos rodomos iki 17 lado.", "Three notes per string: two neighbouring boxes joined into one diagonal shape. For fast lines and legato, with more stretching. Shapes that run out are shown up to fret 17.")
+      : T("Po tris natas stygoje: kiekvienoje stygoje vienodai, tad lengva mušti ir groti legato. Formų tiek, kiek natų gamoje, kiekviena nuo vis kitos natos. Tempti tenka daugiau nei pozicijoje.", "Three notes per string: the same on every string, so picking and legato come easy. As many shapes as the scale has notes, each starting on a different one. More stretching than a position."))
+    : T("Po keturias natas stygoje (Allano Holdswortho būdas): ilgos įstrižos formos per visą grifą, sklandus legato. Tempti tenka daugiausia. Netelpančios formos rodomos iki 17 lado.", "Four notes per string (Allan Holdsworth’s way): long diagonal shapes across the whole neck, smooth legato. The most stretching. Shapes that run out are shown up to fret 17.");
+}
 function rootRows() {
   const r = s => { const k = rootBoxOn(s); return row(T(`Root ${s + 1}-oje stygoje`, `Root on string ${s + 1}`), fretsOf(mod(OPEN[s])),
     T(`Root: ${pick(k, `${k + 1} forma`)}, ${boxRange(k)} ladai`, `Root: ${pick(k, `shape ${k + 1}`)}, frets ${boxRange(k)}`)); };
@@ -1463,6 +1577,7 @@ function drawAbout() {
         `${rootName(p, st.same.q)} ${st.same.word}: tos pačios ${st.same.n} natos${st.same.n === 5 ? " ir formos" : ""}, tik Root kitas. Frazes baikite ant ${rootName(r, q)}.`,
         `${rootName(p, st.same.q)} ${st.same.word}: the same ${st.same.n} notes${st.same.n === 5 ? " and shapes" : ""}, just a different Root. End your phrases on ${rootName(r, q)}.`));
     }
+    if (npsOpts(st).length) { const v = npsCur(st); h += row(T("Formos", "Shapes"), v === 1 ? T("Pozicijos", "Positions") : T(`${v} stygoje`, `${v} per string`), npsTip(v, st)); }
     if (st.also) {
       const p = mod(r + st.also.iv), c = rootName(p, st.also.q) + (st.also.q === "min" ? "m" : "") + st.also.suf;
       h += row(T("Dar tinka ant", "Also fits"), c, tx(st.also, "txt")(c, chordName(r, q)));
@@ -1471,6 +1586,24 @@ function drawAbout() {
   } else if (st.kind === "arp") {
     h += row(T("Akordo natos", "Chord tones"), chordNotes().join(" "), T(`${B.length} formos: kiekviena prasideda nuo vis kitos akordo natos ${LOWS + 1}-oje stygoje.`, `${B.length} shapes: each starts on a different chord tone on string ${LOWS + 1}.`));
     h += rootRows();
+  } else if (st.sc) {
+    /* the two shapes of each string pair: where the second note lies for the major and for the minor interval */
+    const ps = PSET();
+    h += row(T("Gama", "Scale"), `${rootName(r, q)} ${tx(ps, "name")}`, T(
+      "Dvigarsiai imami iš paskutinės pasirinktos gamos. Pasirinkite kitą gamą, tada vėl šį intervalą.",
+      "The double stops come from the scale you last chose. Pick another scale, then this interval again."));
+    const QL = { 1: ["Mažoji sekunda", "Minor second"], 2: ["Didžioji sekunda", "Major second"], 6: ["Tritonas", "Tritone"],
+      10: ["Mažoji septima", "Minor seventh"], 11: ["Didžioji septima", "Major seventh"], 3: ["Mažoji tercija", "Minor third"], 4: ["Didžioji tercija", "Major third"], 8: ["Mažoji seksta", "Minor sixth"],
+      9: ["Didžioji seksta", "Major sixth"], 15: ["Mažoji decima", "Minor tenth"], 16: ["Didžioji decima", "Major tenth"] };
+    const qual = x => QL[x] ? T(...QL[x]) : T(`${x} pustoniai`, `${x} half steps`);
+    const how = d => d === 0 ? T("tame pačiame lade", "on the same fret")
+      : d > 0 ? T(`${d} ${d === 1 ? "ladu" : "ladais"} aukščiau`, `${d} fret${d === 1 ? "" : "s"} higher`)
+      : T(`${-d} ${d === -1 ? "ladu" : "ladais"} žemiau`, `${-d} fret${d === -1 ? "" : "s"} lower`);
+    for (const F of B) {
+      const sem = [...new Set(F.pairs.map(p => p.semis))].sort((a, b) => b - a), ds = sem.map(x => x - F.gap);
+      const txt = sem.map((x, i) => `${qual(x)}: ${T("antroji nata", "the second note")} ${how(ds[i])}.`).join(" ");
+      h += row(pick(F.k, T(`${F.label} stygos`, `Strings ${F.label}`)), ds.map(d => d > 0 ? `+${d}` : `${d}`).join(" / "), txt);
+    }
   } else {
     for (const F of B) {
       /* a gap between the strings other than the instrument's usual one moves the second note */
@@ -1488,6 +1621,7 @@ function drawAbout() {
   $("jam").innerHTML = h;
 }
 function swatch(cls) {
+  if (cls === "bar" || cls === "barw") return `<svg class="sw" viewBox="0 0 34 28" aria-hidden="true"><g class="pair b0${cls === "barw" ? " w" : ""}"><line x1="7" y1="21" x2="27" y2="7"/></g></svg>`;
   if (cls === "ring") return `<svg class="sw" viewBox="0 0 34 28" aria-hidden="true"><g class="note n-strong"><circle cx="17" cy="14" r="8"/></g><circle class="cgring sel" cx="17" cy="14" r="12"/></svg>`;
   return `<svg class="sw" viewBox="0 0 34 28" aria-hidden="true"><g class="note ${cls}"><circle cx="17" cy="14" r="9.5"/></g></svg>`;
 }
@@ -1511,6 +1645,14 @@ function drawLegend() {
   } else if (st.kind === "arp") {
     items.push(["n-root", "Root", T("Akordo pagrindas. Nuo jo patogiausia pradėti arpedžą.", "The chord’s foundation. The easiest place to start the arpeggio."), true]);
     items.push(["n-strong", T("Stiprios", "Strong"), T(`${CT}: kitos akordo natos. Arpedžą sudaro tik jos.`, `${CT}: the other chord tones. The arpeggio is made of these only.`), true]);
+  } else if (st.sc) {
+    const ps = PSET(), ch = ps.ch.filter(i => !chordIvs().includes(i)).map(i => map.get(i).l);
+    items.push(["n-root", "Root", T("Akordo pagrindas. Saugiausia vieta pradėti ir užbaigti frazę.", "The chord’s foundation. The safest place to start and end a phrase."), true]);
+    items.push(["n-strong", T("Stiprios", "Strong"), T(`${CT}: kitos akordo natos.`, `${CT}: the other chord tones.`), true]);
+    if (ch.length) items.push(["n-char", ch.length > 1 ? T("Būdingos", "Characteristic") : T("Būdinga", "Characteristic"), T(`${andJoin(ch)}: ${tx(ps, "name")} spalva.`, `${andJoin(ch)}: the colour of ${tx(ps, "name")}.`), true]);
+    if (labs("weak").length) items.push(["n-weak", T("Silpnos", "Passing"), T(`${andJoin(labs("weak"))}: likusios gamos natos.`, `${andJoin(labs("weak"))}: the rest of the scale.`), true]);
+    items.push(["bar", T("Ryški juosta", "Bright bar"), T("Abi natos iš akordo: ant šio dvigarsio galima sustoti. Per kitus pereikite prie jų.", "Both notes are chord tones: you can rest on this double stop. Use the others to move between them."), true]);
+    items.push(["barw", T("Plona juosta", "Thin bar"), T("Bent viena nata ne iš akordo: pereinamasis dvigarsis.", "At least one note is not a chord tone: a passing double stop."), true]);
   } else {
     items.push(["n-root", "Root", st.iv === 12 ? T("Abi poros natos: ta pati nata per oktavą. Grokite jas kartu, o tarpinę stygą prislopinkite.", "Both notes of the pair: the same note an octave apart. Play them together and mute the string in between.") : T("Apatinė poros nata.", "The lower note of the pair."), true]);
     if (st.iv === 7) items.push(["n-strong", T("Kvinta", "Fifth"), T("5: viršutinė nata. Su Root sudaro power chord.", "5: the upper note. With the Root it makes a power chord."), true]);
@@ -1542,7 +1684,8 @@ function drawTab() {
     $("tabTitle").textContent = T("Stygos", "Strings");
     $("formN").textContent = F.label;
     drawChord(0, 0);
-    $("tabRange").textContent = F.pairs.length ? T(`${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2} ladai`, `frets ${F.pairs[0].f1}–${F.pairs[F.pairs.length - 1].f2}`) : "";
+    const fs = F.pairs.flatMap(p => [p.f1, p.f2]), lo = Math.min(...fs), hi = Math.max(...fs);
+    $("tabRange").textContent = F.pairs.length ? T(`${lo}–${hi} ladai`, `frets ${lo}–${hi}`) : "";
     rows = SN.map((n, s) => {
       let line = `${n}|-`;
       for (const p of F.pairs) {
@@ -1800,6 +1943,9 @@ function drawControls() {
     ...B.map(F => [String(F.k), F.label, pr ? T(`Rodyti ${F.label} stygas`, `Show strings ${F.label}`) : T(`Rodyti ${F.label} formą`, `Show shape ${F.label}`)])]
     .map(([v, t, tip]) => `<button data-v="${v}" aria-pressed="${String(+v === S.box)}" data-tip="${tip}">${t}</button>`).join("");
   $("boxSeg").classList.toggle("off", !S.group);
+  const no = npsOpts(st), cur = npsCur(st);
+  $("npsCtl").hidden = !no.length;
+  $("npsSeg").innerHTML = no.map(v => `<button data-v="${v}" aria-pressed="${v === cur}" data-tip="${esc(npsTip(v, st))}">${v === 1 ? T("Pozicija", "Position") : v}</button>`).join("");
 }
 function drawHead() {
   const st = SET(), r = S.root, q = S.q, map = degMap();
@@ -1807,8 +1953,9 @@ function drawHead() {
   let notes;
   if (st.kind === "scale") notes = st.deg.map(([i, l, d]) => nameAt(r, q, i, d || degNum(l))).join(" ");
   else if (st.kind === "arp") notes = chordNotes().join(" ");
+  else if (st.sc) notes = PSET().deg.map(([i, l, d]) => nameAt(r, q, i, d || degNum(l))).join(" ");
   else notes = st.iv === 12 ? `${rootName(r, q)} + ${rootName(r, q)}` : `${rootName(r, q)} + ${map.get(st.iv).name}`;
-  $("scaleTitle").textContent = st.kind === "pair" ? T(`${st.btn} nuo ${rootName(r, q)}`, `${tx(st, "btn")} from ${rootName(r, q)}`) : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${tx(st, "name")}`;
+  $("scaleTitle").textContent = st.sc ? `${tx(st, "btn")}: ${rootName(r, q)} ${tx(PSET(), "name")}` : st.kind === "pair" ? T(`${st.btn} nuo ${rootName(r, q)}`, `${tx(st, "btn")} from ${rootName(r, q)}`) : `${st.kind === "arp" ? chordName(r, q) : rootName(r, q)} ${tx(st, "name")}`;
   $("scaleNotes").textContent = notes;
   const F = formSel() ? B[S.box] : null;
   $("footBox").textContent = !S.group ? T("be formų", "no shapes")
@@ -2081,7 +2228,7 @@ function render(scrollToBox) {
 const onBtn = (id, fn) => $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (b) fn(b); });
 onBtn("roots", b => { S.root = +b.dataset.pc; render(true); });
 onBtn("qSeg", b => { if (b.dataset.more) { S.moreQ = !S.moreQ; render(); return; } S.q = b.dataset.v; render(true); });
-onBtn("scaleSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
+onBtn("scaleSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = S.pscale = b.dataset.v; render(); });
 onBtn("ivSets", b => { if (S.set !== b.dataset.v) S.box = -1; S.set = b.dataset.v; render(); });
 onBtn("labSeg", b => { S.labels = b.dataset.v; render(); });
 onBtn("cofDeg", b => cofPick(+b.dataset.pc, b.dataset.q));
@@ -2107,6 +2254,7 @@ $("blueSw").addEventListener("click", () => { S.blue = !S.blue; render(); });
 onBtn("instSeg", b => { if (S.inst === b.dataset.v) return; S.inst = b.dataset.v; S.tun = "std"; S.box = -1; applyTuning(); render(true); });
 onBtn("tunSeg", b => { if (S.tun === b.dataset.v) return; S.tun = b.dataset.v; applyTuning(); render(true); });
 $("groupSw").addEventListener("click", () => { S.group = !S.group; render(); });
+onBtn("npsSeg", b => { const v = +b.dataset.v; S.nps = v === npsDef(SET()) ? 0 : v; S.box = -1; render(); });
 onBtn("boxSeg", b => { S.box = +b.dataset.v; if (S.box >= 0) lastBox = S.box; render(true); });
 $("jam").addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (!b) return; S.group = true; S.box = +b.dataset.pick; render(true); });
 $("fb").addEventListener("click", e => {
@@ -2313,7 +2461,7 @@ const STATIC = [
   ["tunPanel", "aria", "Instrumentas ir derinimas", "Instrument and tuning"], ["instTitle", "text", "Instrumentas", "Instrument"], ["tunTitle", "text", "Derinimas", "Tuning"],
   ["instSeg", "aria", "Instrumentas", "Instrument"], ["tunSeg", "aria", "Derinimas", "Tuning"], ["tunStrings", "aria", "Stygos", "Strings"],
   ["blueTxt", "text", "Blue nata", "Blue note"], ["blueSw", "tip", "Prideda bliuzo natą prie pentatonikos", "Adds the blues note to the pentatonic"],
-  ["groupTxt", "text", "Formos", "Shapes"], ["groupSw", "tip", "Rodo formas ant grifo", "Shows the shapes on the neck"],
+  ["groupTxt", "text", "Formos", "Shapes"], ["npsL", "text", "Natų stygoje", "Per string"], ["npsSeg", "aria", "Natų stygoje", "Notes per string"], ["groupSw", "tip", "Rodo formas ant grifo", "Shows the shapes on the neck"],
   ["labL", "text", "Žymės", "Labels"],
   ["labNames", "text", "Natos", "Notes"], ["labNames", "tip", "Ant natų rašyti pavadinimus (A, C, E)", "Show note names (A, C, E)"],
   ["labInts", "text", "Intervalai", "Intervals"], ["labInts", "tip", "Ant natų rašyti intervalus (R, ♭3, 5)", "Show intervals (R, ♭3, 5)"],
