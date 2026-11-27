@@ -117,6 +117,8 @@ h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing
 .seg{display:flex;flex-wrap:wrap;gap:4px}
 .seg button{border:1px solid var(--line);background:transparent;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:500;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+/* the scale a double stop is taken from: outlined, not pressed */
+.seg button.src{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink)}
 .seg.big button{font-size:14px;padding:8px 14px;font-weight:600}
 /* chord type groups: a wider gap between groups than between buttons */
 #qSeg{gap:6px 14px}
@@ -1163,6 +1165,9 @@ const ORDER = {
 const QMAP = { mpent: "Mpent", Mpent: "mpent", aeo: "ion", ion: "aeo" };
 const withCtx = id => { const st = SETS[id], o = ctxOf(st, S.q); return o ? Object.assign({}, st, o) : st; };
 const SET = () => withCtx(S.set);
+/* declared before the first fixSet(): a saved double stop from a scale needs the chord tones right at load */
+const chordIvs = () => CH[S.q].tones.map(t => t[0]);
+const chordNotes = () => CH[S.q].tones.map(([i, l, d]) => nameAt(S.root, S.q, i, d || degNum(l)));
 /* the scale a diatonic interval is built from: the last scale chosen (or its major/minor twin) if this chord offers it
    and it has 6 notes or more, else the chord's first such scale */
 function pscaleId() {
@@ -1210,8 +1215,6 @@ function applyTuning() {
 applyTuning();
 function save() { try { localStorage.setItem("lempinio-solo-v1", JSON.stringify(S)); } catch (e) {} }
 
-const chordIvs = () => CH[S.q].tones.map(t => t[0]);
-const chordNotes = () => CH[S.q].tones.map(([i, l, d]) => nameAt(S.root, S.q, i, d || degNum(l)));
 const chordLabs = () => CH[S.q].tones.slice(1).map(t => t[1]);
 /* a characteristic note that is also a chord tone (♭7 of Mixolydian on a 7 chord) is shown as a chord tone */
 const chOf = st => st.ch.filter(i => !chordIvs().includes(i));
@@ -1255,11 +1258,14 @@ function npsOf(n) {
 /* how a scale is split over the strings: 2, 3 or 4 notes per string, or 1 = a position (about 4 frets, 2 or 3 per string).
    S.nps 0 = the scale's own default (2 for 5- and 6-note scales, 3 for 7- and 8-note ones); 4 and positions for 7 notes up */
 const npsDef = st => st.deg.length <= 6 ? 2 : 3;
-const npsOpts = st => REENT || st.kind !== "scale" ? [] : st.deg.length >= 7 ? [2, 3, 4, 1] : [2, 3];
+/* a split none of whose shapes fits this instrument (4 per string on the mandolin) is not offered */
+const npsOpts = st => REENT || st.kind !== "scale" ? [] : (st.deg.length >= 7 ? [2, 3, 4, 1] : [2, 3]).filter(v => v === npsDef(st) || splitForms(st, v).length);
 const npsCur = st => { const o = npsOpts(st); return !o.length ? 0 : o.includes(S.nps) ? S.nps : npsDef(st); };
 function scaleForms(st) {
   if (REENT) return posForms(st.deg.map(d => d[0]));
-  const k = npsCur(st);
+  return splitForms(st, npsCur(st));
+}
+function splitForms(st, k) {
   if (k === 1) return positionForms(st);
   /* more notes per string than usual climb past fret 17: such a shape is kept if 4 strings or more fit */
   const part = k > npsDef(st);
@@ -1926,7 +1932,8 @@ function drawControls() {
   const st = SET();
   /* tooltip of a set: the first sentence of its description over the current chord */
   const tipOf = id => { const o = SETS[id], c = ctxOf(o, S.q), a = c && tx(c, "about") ? tx(c, "about") : tx(o, "about"); return esc(a.split(/(?<=[.!?])\s/)[0]); };
-  const setBtn = id => `<button data-v="${id}" aria-pressed="${id === S.set}" data-tip="${tipOf(id)}">${tx(SETS[id], "btn")}</button>`;
+  const src = st.sc ? pscaleId() : null;
+  const setBtn = id => `<button data-v="${id}" aria-pressed="${id === S.set}"${id === src ? ' class="src"' : ""} data-tip="${id === src ? esc(T(`Iš šios gamos imami: ${tx(st, "name")}`, `The ${tx(st, "name_en") || tx(st, "name")} come from this scale`)) : tipOf(id)}">${tx(SETS[id], "btn")}</button>`;
   $("scaleSets").innerHTML = ORDER[S.q].map(setBtn).join("");
   $("ivSets").innerHTML = ivList().map(setBtn).join("");
   /* folded: triads and the three common sevenths (plus the chosen type, wherever it lives); "More" sits in the last group shown */
